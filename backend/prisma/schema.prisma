@@ -1,0 +1,191 @@
+// SMART LIFE — PostgreSQL schema (SRS §2.5: PostgreSQL only, no Supabase)
+// All monetary values are integer Rwandan Francs (RWF).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  approver
+  admin
+}
+
+enum TxnType {
+  income
+  expense
+}
+
+enum GoalStatus {
+  active
+  achieved
+  failed
+}
+
+enum ApprovalKind {
+  spending
+  screentime
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  denied
+}
+
+enum PeerRelationship {
+  peer
+  parent
+}
+
+enum LinkStatus {
+  pending
+  accepted
+  rejected
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(student)
+  isMinor      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions      Transaction[]
+  goals             Goal[]
+  spendingLimits    SpendingLimit[]
+  screenTimePolicies ScreenTimePolicy[]
+  refreshTokens     RefreshToken[]
+  auditLogs         AuditLog[]
+
+  // Peer links
+  linksAsStudent  PeerLink[] @relation("StudentLinks")
+  linksAsApprover PeerLink[] @relation("ApproverLinks")
+
+  // Approvals
+  approvalsRequested Approval[] @relation("Requester")
+  approvalsToReview  Approval[] @relation("Approver")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  type       TxnType
+  amountRwf  Int
+  category   String   @default("general")
+  note       String?
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId, occurredAt])
+}
+
+model Goal {
+  id        String     @id @default(uuid())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  title     String
+  targetRwf Int
+  savedRwf  Int        @default(0)
+  deadline  DateTime
+  status    GoalStatus @default(active)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model SpendingLimit {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  periodStart DateTime
+  periodEnd   DateTime
+  limitRwf    Int
+  spentRwf    Int      @default(0)
+  isBlocked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, periodStart])
+}
+
+model ScreenTimePolicy {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  appOrSite     String
+  dailyLimitMin Int
+  usedMin       Int      @default(0)
+  isBlocked     Boolean  @default(false)
+  resetAt       DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, appOrSite])
+  @@index([userId])
+}
+
+model PeerLink {
+  id           String           @id @default(uuid())
+  student      User             @relation("StudentLinks", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId    String
+  approver     User             @relation("ApproverLinks", fields: [approverId], references: [id], onDelete: Cascade)
+  approverId   String
+  relationship PeerRelationship @default(peer)
+  status       LinkStatus       @default(pending)
+  createdAt    DateTime         @default(now())
+
+  @@unique([studentId, approverId])
+  @@index([approverId])
+}
+
+model Approval {
+  id          String         @id @default(uuid())
+  requester   User           @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String
+  approver    User           @relation("Approver", fields: [approverId], references: [id], onDelete: Cascade)
+  approverId  String
+  kind        ApprovalKind
+  targetId    String
+  // Encrypted free-text reason / context (SRS §2.4 — encryption for peer requests)
+  reasonEnc   String?
+  status      ApprovalStatus @default(pending)
+  decidedAt   DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([approverId, status])
+  @@index([requesterId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId    String?
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

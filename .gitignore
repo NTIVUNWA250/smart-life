@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+.next/
+*.log
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Flutter
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+
+# Misc
+.DS_Store
+coverage/

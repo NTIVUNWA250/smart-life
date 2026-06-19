@@ -1,0 +1,472 @@
+'use client';
+
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { AppShell } from '@/components/AppShell';
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Field,
+  Input,
+  ProgressBar,
+  Select,
+  Spinner,
+} from '@/components/ui';
+import { api } from '@/lib/api';
+import { errorMessage } from '@/lib/errors';
+import { clampPct, formatDate, formatMinutes, formatRwf } from '@/lib/format';
+import type {
+  AnalyticsSummary,
+  Goal,
+  ScreenTimePolicy,
+  Transaction,
+  TransactionType,
+} from '@/lib/types';
+
+export default function DashboardPage() {
+  return (
+    <AppShell>
+      <Dashboard />
+    </AppShell>
+  );
+}
+
+function Dashboard() {
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [policies, setPolicies] = useState<ScreenTimePolicy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      const [s, t, g, p] = await Promise.all([
+        api.analytics.summary(),
+        api.transactions.list({ limit: 8 }),
+        api.goals.list(),
+        api.screentime.policies(),
+      ]);
+      setSummary(s);
+      setTransactions(t.items);
+      setGoals(g.items);
+      setPolicies(p.items);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (loading) return <Spinner label="Loading your dashboard…" />;
+  if (error) return <Alert tone="error">{error}</Alert>;
+
+  return (
+    <div className="space-y-6">
+      {summary && <SummaryCards summary={summary} />}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <AddTransaction onDone={load} />
+        <AddGoal onDone={load} />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <GoalsList goals={goals} onDone={load} />
+        <RecentTransactions transactions={transactions} onDone={load} />
+      </div>
+
+      <ScreenTime policies={policies} onDone={load} />
+    </div>
+  );
+}
+
+function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
+  const { finance, savings, time } = summary;
+  const spentPct = finance.limitRwf > 0 ? (finance.spentRwf / finance.limitRwf) * 100 : 0;
+  const timePct = time.totalLimitMin > 0 ? (time.totalUsedMin / time.totalLimitMin) * 100 : 0;
+
+  return (
+    <div className="grid gap-6 md:grid-cols-3">
+      <Card title="Spending this month">
+        <div className="text-2xl font-bold text-slate-900">
+          {formatRwf(finance.spentRwf)}
+        </div>
+        <div className="mt-1 text-sm text-slate-500">
+          of {formatRwf(finance.limitRwf)} limit
+        </div>
+        <div className="mt-3">
+          <ProgressBar value={spentPct} tone={finance.isBlocked ? 'danger' : 'brand'} />
+        </div>
+        {finance.isBlocked && (
+          <div className="mt-3">
+            <Alert tone="warning">
+              Spending is <strong>blocked</strong> — you have reached your limit.
+              Request a peer/parent approval to unblock.
+            </Alert>
+          </div>
+        )}
+      </Card>
+
+      <Card title="Savings goals">
+        <div className="text-2xl font-bold text-slate-900">
+          {formatRwf(savings.savedRwf)}
+        </div>
+        <div className="mt-1 text-sm text-slate-500">
+          of {formatRwf(savings.targetRwf)} ({savings.progressPct}%)
+        </div>
+        <div className="mt-3">
+          <ProgressBar value={savings.progressPct} tone="success" />
+        </div>
+        <div className="mt-3 flex gap-2">
+          <Badge tone="blue">{savings.activeGoals} active</Badge>
+          <Badge tone="green">{savings.achievedGoals} achieved</Badge>
+        </div>
+      </Card>
+
+      <Card title="Screen time today">
+        <div className="text-2xl font-bold text-slate-900">
+          {formatMinutes(time.totalUsedMin)}
+        </div>
+        <div className="mt-1 text-sm text-slate-500">
+          of {formatMinutes(time.totalLimitMin)} allowed
+        </div>
+        <div className="mt-3">
+          <ProgressBar value={timePct} tone={time.blocked.length ? 'danger' : 'brand'} />
+        </div>
+        {time.blocked.length > 0 && (
+          <div className="mt-3 text-xs text-slate-500">
+            Blocked: {time.blocked.join(', ')}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
+  const [type, setType] = useState<TransactionType>('expense');
+  const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState('');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      await api.transactions.create({
+        type,
+        amountRwf: Number(amount),
+        category: category || undefined,
+        note: note || undefined,
+      });
+      setAmount('');
+      setCategory('');
+      setNote('');
+      await onDone();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Add income / expense">
+      <form onSubmit={submit} className="space-y-3">
+        {error && <Alert tone="error">{error}</Alert>}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Type">
+            <Select value={type} onChange={(e) => setType(e.target.value as TransactionType)}>
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </Select>
+          </Field>
+          <Field label="Amount (RWF)">
+            <Input
+              type="number"
+              min={1}
+              required
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </Field>
+        </div>
+        <Field label="Category">
+          <Input
+            placeholder="food, transport…"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
+        </Field>
+        <Field label="Note (optional)">
+          <Input value={note} onChange={(e) => setNote(e.target.value)} />
+        </Field>
+        <Button type="submit" disabled={busy}>
+          {busy ? 'Saving…' : 'Add transaction'}
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
+function AddGoal({ onDone }: { onDone: () => Promise<void> }) {
+  const [title, setTitle] = useState('');
+  const [target, setTarget] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      await api.goals.create({
+        title,
+        targetRwf: Number(target),
+        deadline: new Date(deadline).toISOString(),
+      });
+      setTitle('');
+      setTarget('');
+      setDeadline('');
+      await onDone();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Create a savings goal">
+      <form onSubmit={submit} className="space-y-3">
+        {error && <Alert tone="error">{error}</Alert>}
+        <Field label="Title">
+          <Input
+            required
+            placeholder="Laptop fund"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Target (RWF)">
+            <Input
+              type="number"
+              min={1}
+              required
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+            />
+          </Field>
+          <Field label="Deadline">
+            <Input
+              type="date"
+              required
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
+          </Field>
+        </div>
+        <Button type="submit" disabled={busy}>
+          {busy ? 'Saving…' : 'Create goal'}
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
+function GoalsList({ goals, onDone }: { goals: Goal[]; onDone: () => Promise<void> }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function addSaved(goal: Goal) {
+    const input = window.prompt(`Add savings to "${goal.title}" (RWF):`);
+    if (!input) return;
+    const addSavedRwf = Number(input);
+    if (!Number.isInteger(addSavedRwf) || addSavedRwf <= 0) return;
+    setBusyId(goal.id);
+    try {
+      await api.goals.update(goal.id, { addSavedRwf });
+      await onDone();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <Card title="Your goals">
+      {goals.length === 0 ? (
+        <p className="text-sm text-slate-500">No goals yet — create one to start saving.</p>
+      ) : (
+        <ul className="space-y-4">
+          {goals.map((g) => (
+            <li key={g.id}>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-slate-800">{g.title}</span>
+                <Badge tone={g.status === 'achieved' ? 'green' : 'slate'}>{g.status}</Badge>
+              </div>
+              <div className="mt-1 text-xs text-slate-500">
+                {formatRwf(g.savedRwf)} / {formatRwf(g.targetRwf)} · due {formatDate(g.deadline)}
+              </div>
+              <div className="mt-2">
+                <ProgressBar
+                  value={clampPct((g.savedRwf / g.targetRwf) * 100)}
+                  tone="success"
+                />
+              </div>
+              <div className="mt-2">
+                <Button
+                  variant="secondary"
+                  disabled={busyId === g.id || g.status === 'achieved'}
+                  onClick={() => void addSaved(g)}
+                >
+                  Add savings
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function RecentTransactions({
+  transactions,
+  onDone,
+}: {
+  transactions: Transaction[];
+  onDone: () => Promise<void>;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function remove(id: string) {
+    setBusyId(id);
+    try {
+      await api.transactions.remove(id);
+      await onDone();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <Card title="Recent transactions">
+      {transactions.length === 0 ? (
+        <p className="text-sm text-slate-500">No transactions yet.</p>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {transactions.map((t) => (
+            <li key={t.id} className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-sm font-medium text-slate-800">
+                  {t.category}
+                  {t.note ? ` · ${t.note}` : ''}
+                </div>
+                <div className="text-xs text-slate-500">{formatDate(t.occurredAt)}</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span
+                  className={
+                    t.type === 'income'
+                      ? 'text-sm font-semibold text-emerald-600'
+                      : 'text-sm font-semibold text-red-600'
+                  }
+                >
+                  {t.type === 'income' ? '+' : '−'}
+                  {formatRwf(t.amountRwf)}
+                </span>
+                <Button
+                  variant="secondary"
+                  disabled={busyId === t.id}
+                  onClick={() => void remove(t.id)}
+                >
+                  ✕
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function ScreenTime({
+  policies,
+  onDone,
+}: {
+  policies: ScreenTimePolicy[];
+  onDone: () => Promise<void>;
+}) {
+  const [appOrSite, setAppOrSite] = useState('');
+  const [limit, setLimit] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.screentime.upsertPolicy(appOrSite, Number(limit));
+      setAppOrSite('');
+      setLimit('');
+      await onDone();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Screen-time limits">
+      <form onSubmit={submit} className="mb-4 flex flex-wrap items-end gap-3">
+        <Field label="App or site">
+          <Input
+            required
+            placeholder="instagram"
+            value={appOrSite}
+            onChange={(e) => setAppOrSite(e.target.value)}
+          />
+        </Field>
+        <Field label="Daily limit (min)">
+          <Input
+            type="number"
+            min={0}
+            max={1440}
+            required
+            value={limit}
+            onChange={(e) => setLimit(e.target.value)}
+          />
+        </Field>
+        <Button type="submit" disabled={busy}>
+          {busy ? 'Saving…' : 'Set limit'}
+        </Button>
+      </form>
+      {policies.length === 0 ? (
+        <p className="text-sm text-slate-500">No screen-time limits set.</p>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {policies.map((p) => (
+            <li key={p.id} className="flex items-center justify-between py-2">
+              <span className="text-sm font-medium text-slate-800">{p.appOrSite}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500">
+                  {formatMinutes(p.usedMin)} / {formatMinutes(p.dailyLimitMin)}
+                </span>
+                {p.isBlocked && <Badge tone="red">blocked</Badge>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
