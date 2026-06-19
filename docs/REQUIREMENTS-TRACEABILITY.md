@@ -11,7 +11,7 @@ Status: ☐ planned · ◑ in progress · ☑ done.
 | FR2   | Input income, expenses, set goals             | `backend transactions/goals` + web + mobile | ☑  |
 | FR3   | Calculate spending limits automatically       | `backend modules/limits`                | ☑      |
 | FR4   | Lock expenses via provider APIs               | `backend modules/limits` + `providers/payment` | ☑ |
-| FR5   | Track & limit time on apps/sites              | `backend modules/screentime` + clients (native OS = stub) | ◑ |
+| FR5   | Track & limit time on apps/sites              | `backend modules/screentime` (daily reset) + mobile `MethodChannel` boundary (native OS modules pending) | ◑ |
 | FR6   | Peer approval to unblock limits               | `backend approvals/peers` + web + mobile | ☑     |
 | FR7   | Analytics dashboard (time + finances)         | `backend modules/analytics` + web + mobile | ☑   |
 

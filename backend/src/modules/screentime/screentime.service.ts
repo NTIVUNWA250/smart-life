@@ -2,6 +2,8 @@ import type { ScreenTimePolicy } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { providers } from '../../providers/index.js';
 import { notFound } from '../../lib/http-error.js';
+import { isNewUtcDay } from '../../lib/period.js';
+import { audit } from '../../lib/audit.js';
 
 export async function listPolicies(userId: string): Promise<ScreenTimePolicy[]> {
   return prisma.screenTimePolicy.findMany({ where: { userId }, orderBy: { appOrSite: 'asc' } });
@@ -22,10 +24,14 @@ export async function upsertPolicy(
 /**
  * The mobile app reports usage (FR5). For each app/site we update minutes used and
  * block it when the daily limit is exceeded, enforcing via the OS provider.
+ *
+ * Screen-time limits are *daily*: when the first report of a new UTC day arrives,
+ * the policy's counter and block are reset before the new usage is applied.
  */
 export async function reportUsage(
   userId: string,
   usage: { appOrSite: string; usedMin: number }[],
+  now = new Date(),
 ): Promise<ScreenTimePolicy[]> {
   const updated: ScreenTimePolicy[] = [];
   for (const u of usage) {
@@ -33,12 +39,20 @@ export async function reportUsage(
       where: { userId_appOrSite: { userId, appOrSite: u.appOrSite } },
     });
     if (!policy) continue;
+
     const isBlocked = u.usedMin >= policy.dailyLimitMin;
     const next = await prisma.screenTimePolicy.update({
       where: { id: policy.id },
-      data: { usedMin: u.usedMin, isBlocked },
+      // On a new day, stamp resetAt so the window rolls over from this report.
+      data: isNewUtcDay(policy.resetAt, now)
+        ? { usedMin: u.usedMin, isBlocked, resetAt: now }
+        : { usedMin: u.usedMin, isBlocked },
     });
     await providers.screentime.enforceBlock(userId, u.appOrSite, isBlocked);
+    // Audit only the false→true transition (a new block taking effect).
+    if (isBlocked && !policy.isBlocked) {
+      await audit('screentime.blocked', userId, `app=${u.appOrSite} used=${u.usedMin} limit=${policy.dailyLimitMin}`);
+    }
     updated.push(next);
   }
   return updated;
