@@ -59,12 +59,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  transactions      Transaction[]
-  goals             Goal[]
-  spendingLimits    SpendingLimit[]
+  transactions       Transaction[]
+  goals              Goal[]
+  spendingLimits     SpendingLimit[]
   screenTimePolicies ScreenTimePolicy[]
-  refreshTokens     RefreshToken[]
-  auditLogs         AuditLog[]
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]
 
   // Peer links
   linksAsStudent  PeerLink[] @relation("StudentLinks")
@@ -76,13 +76,13 @@ model User {
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
 }
@@ -99,6 +99,8 @@ model Transaction {
   createdAt  DateTime @default(now())
 
   @@index([userId, occurredAt])
+  // Supports income/expense aggregations (limits + analytics) which filter by type.
+  @@index([userId, type, occurredAt])
 }
 
 model Goal {
@@ -113,7 +115,8 @@ model Goal {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  @@index([userId])
+  // active-goal lookups (spending-limit calc) filter by userId + status.
+  @@index([userId, status])
 }
 
 model SpendingLimit {
@@ -188,4 +191,6 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+  // Audit reporting filters/groups by action over time.
+  @@index([action, createdAt])
 }

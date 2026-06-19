@@ -20,7 +20,7 @@ Status: ☐ planned · ◑ in progress · ☑ done.
 | ID    | Type            | Requirement                                  | Where                         | Status |
 | ----- | --------------- | -------------------------------------------- | ----------------------------- | ------ |
 | NFR1  | Security        | Authenticate users (JWT)                     | `backend/middleware/auth`     | ☑      |
-| NFR2  | Performance     | Handle concurrent active users               | API + DB indexing             | ◑      |
+| NFR2  | Performance     | Handle concurrent active users               | API + DB indexing (Prisma `@@index`) | ☑ |
 | NFR3  | Usability       | English UI, basic-skill friendly             | web + mobile                  | ☑      |
 | NFR4  | Auditability    | Auditable, report generation                 | `AuditLog` model + admin audit| ◑      |
 | NFR5  | Cross-browser   | Chrome + Edge                                | `web` (standard modern web)   | ☑      |
