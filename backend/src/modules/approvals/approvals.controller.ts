@@ -5,6 +5,7 @@ import { requireAuth } from '../../middleware/auth.js';
 import { prisma } from '../../lib/prisma.js';
 import { badRequest, forbidden, notFound } from '../../lib/http-error.js';
 import { encryptField, decryptField } from '../../lib/crypto.js';
+import { audit } from '../../lib/audit.js';
 import { unblock as unblockSpending } from '../limits/limits.service.js';
 import { setPolicyBlocked } from '../screentime/screentime.service.js';
 
@@ -38,6 +39,7 @@ approvalsRouter.post(
         reasonEnc: input.reason ? encryptField(input.reason) : null,
       },
     });
+    await audit('approval.created', req.user!.id, `kind=${approval.kind} approver=${input.approverId}`);
     res.status(201).json({ approval: { ...approval, reasonEnc: undefined } });
   }),
 );
@@ -95,6 +97,7 @@ approvalsRouter.patch(
       }
     }
 
+    await audit('approval.decided', req.user!.id, `kind=${approval.kind} status=${status} requester=${approval.requesterId}`);
     res.json({ approval: { ...updated, reasonEnc: undefined } });
   }),
 );

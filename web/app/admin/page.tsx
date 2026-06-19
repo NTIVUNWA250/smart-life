@@ -2,17 +2,29 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
-import { Alert, Badge, Card, Select, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, Input, Select, Spinner } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { formatDate } from '@/lib/format';
-import type { AdminUser, Role } from '@/lib/types';
+import type { AdminUser, AuditLogEntry, AuditSummaryEntry, Role } from '@/lib/types';
 
 export default function AdminPage() {
+  const { user } = useAuth();
+  // Defensive: AppShell already hides the nav link, but guard the page too.
+  if (user && user.role !== 'admin') {
+    return (
+      <AppShell>
+        <Alert tone="warning">This page is for administrators only.</Alert>
+      </AppShell>
+    );
+  }
   return (
     <AppShell>
-      <Admin />
+      <div className="space-y-6">
+        <Admin />
+        <AuditLog />
+      </div>
     </AppShell>
   );
 }
@@ -52,10 +64,6 @@ function Admin() {
     }
   }
 
-  // Defensive: AppShell already hides the nav link, but guard the page too.
-  if (user && user.role !== 'admin') {
-    return <Alert tone="warning">This page is for administrators only.</Alert>;
-  }
   if (loading) return <Spinner label="Loading users…" />;
   if (error) return <Alert tone="error">{error}</Alert>;
 
@@ -98,6 +106,111 @@ function Admin() {
           </tbody>
         </table>
       </div>
+    </Card>
+  );
+}
+
+// NFR4: auditable trail with filtering + CSV report export.
+function AuditLog() {
+  const [items, setItems] = useState<AuditLogEntry[]>([]);
+  const [summary, setSummary] = useState<AuditSummaryEntry[]>([]);
+  const [actionFilter, setActionFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const load = useCallback(async (action: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [log, sum] = await Promise.all([
+        api.admin.audit(action ? { action } : undefined),
+        api.admin.auditSummary(),
+      ]);
+      setItems(log.items);
+      setSummary(sum.items);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load('');
+  }, [load]);
+
+  async function exportCsv() {
+    setExporting(true);
+    try {
+      const blob = await api.admin.downloadAuditCsv(actionFilter ? { action: actionFilter } : undefined);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'audit-report.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <Card title="Audit log">
+      <div className="mb-4 flex flex-wrap items-end gap-2">
+        <Select
+          value={actionFilter}
+          onChange={(e) => {
+            setActionFilter(e.target.value);
+            void load(e.target.value);
+          }}
+          className="w-56"
+        >
+          <option value="">All actions</option>
+          {summary.map((s) => (
+            <option key={s.action} value={s.action}>
+              {s.action} ({s.count})
+            </option>
+          ))}
+        </Select>
+        <Button variant="secondary" onClick={() => void exportCsv()} disabled={exporting}>
+          {exporting ? 'Exporting…' : 'Export CSV'}
+        </Button>
+      </div>
+
+      {error && <Alert tone="error">{error}</Alert>}
+      {loading ? (
+        <Spinner label="Loading audit log…" />
+      ) : items.length === 0 ? (
+        <p className="text-sm text-slate-500">No audit entries yet.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                <th className="py-2 pr-4">When</th>
+                <th className="py-2 pr-4">Action</th>
+                <th className="py-2 pr-4">User</th>
+                <th className="py-2 pr-4">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((e) => (
+                <tr key={e.id} className="border-b border-slate-100">
+                  <td className="py-2 pr-4 text-slate-500">{new Date(e.createdAt).toLocaleString()}</td>
+                  <td className="py-2 pr-4">
+                    <Badge tone="slate">{e.action}</Badge>
+                  </td>
+                  <td className="py-2 pr-4 font-mono text-xs text-slate-600">{e.userId ?? '—'}</td>
+                  <td className="py-2 pr-4 text-slate-600">{e.detail ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Card>
   );
 }

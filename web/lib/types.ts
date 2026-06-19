@@ -138,3 +138,16 @@ export interface PeerLinks {
 export interface AdminUser extends User {
   createdAt: string;
 }
+
+export interface AuditLogEntry {
+  id: string;
+  userId: string | null;
+  action: string;
+  detail: string | null;
+  createdAt: string;
+}
+
+export interface AuditSummaryEntry {
+  action: string;
+  count: number;
+}

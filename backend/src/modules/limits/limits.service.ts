@@ -3,6 +3,7 @@ import { prisma } from '../../lib/prisma.js';
 import { currentMonthPeriod, monthsUntil } from '../../lib/period.js';
 import { blockAllPayments, providers, unblockAllPayments } from '../../providers/index.js';
 import { logger } from '../../lib/logger.js';
+import { audit } from '../../lib/audit.js';
 
 /**
  * Auto-calculated spending limit (FR3) for the current month:
@@ -52,6 +53,15 @@ export async function recomputeCurrentLimit(userId: string): Promise<SpendingLim
   // Don't auto-unblock if an admin/over-limit block is in force and still over limit.
   const overLimit = spentRwf >= limitRwf && limitRwf >= 0;
   const shouldBlock = overLimit;
+
+  // Record only the false→true / true→false transitions, not every recompute.
+  if ((existing?.isBlocked ?? false) !== shouldBlock) {
+    await audit(
+      shouldBlock ? 'limit.blocked' : 'limit.unblocked',
+      userId,
+      `spent=${spentRwf} limit=${limitRwf}`,
+    );
+  }
 
   const limit = existing
     ? await prisma.spendingLimit.update({

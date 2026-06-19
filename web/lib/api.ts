@@ -5,6 +5,8 @@
 import type {
   AdminUser,
   AnalyticsSummary,
+  AuditLogEntry,
+  AuditSummaryEntry,
   Approval,
   ApprovalKind,
   ApprovalStatus,
@@ -283,5 +285,27 @@ export const api = {
         method: 'PATCH',
         body: input,
       }),
+    audit: (filters?: AuditFilters) =>
+      request<{ items: AuditLogEntry[] }>('/admin/audit', { query: { ...filters } }),
+    auditSummary: () =>
+      request<{ items: AuditSummaryEntry[] }>('/admin/audit/summary'),
+    // CSV export needs the bearer header, so fetch the raw blob directly.
+    downloadAuditCsv: async (filters?: AuditFilters): Promise<Blob> => {
+      const res = await fetch(buildUrl('/admin/audit', { ...filters, format: 'csv' }), {
+        headers: tokenStore.access ? { Authorization: `Bearer ${tokenStore.access}` } : {},
+      });
+      if (!res.ok) {
+        throw new ApiError(res.status, 'export_failed', 'Could not export audit CSV');
+      }
+      return res.blob();
+    },
   },
 };
+
+export interface AuditFilters {
+  action?: string;
+  userId?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}

@@ -4,6 +4,7 @@ import { asyncHandler } from '../../middleware/async-handler.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { prisma } from '../../lib/prisma.js';
 import { notFound } from '../../lib/http-error.js';
+import { audit } from '../../lib/audit.js';
 import * as authService from './auth.service.js';
 import { toPublicUser } from './auth.service.js';
 import { loginSchema, refreshSchema, signupSchema } from './auth.schemas.js';
@@ -23,6 +24,7 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const input = signupSchema.parse(req.body);
     const result = await authService.signup(input);
+    await audit('auth.signup', result.user.id, `role=${result.user.role}`);
     res.status(201).json(result);
   }),
 );
@@ -33,6 +35,7 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const input = loginSchema.parse(req.body);
     const result = await authService.login(input);
+    await audit('auth.login', result.user.id);
     res.json(result);
   }),
 );

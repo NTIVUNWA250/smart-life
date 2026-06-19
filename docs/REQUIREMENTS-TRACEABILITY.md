@@ -22,7 +22,7 @@ Status: ☐ planned · ◑ in progress · ☑ done.
 | NFR1  | Security        | Authenticate users (JWT)                     | `backend/middleware/auth`     | ☑      |
 | NFR2  | Performance     | Handle concurrent active users               | API + DB indexing (Prisma `@@index`) | ☑ |
 | NFR3  | Usability       | English UI, basic-skill friendly             | web + mobile                  | ☑      |
-| NFR4  | Auditability    | Auditable, report generation                 | `AuditLog` model + admin audit| ◑      |
+| NFR4  | Auditability    | Auditable, report generation                 | `lib/audit` writes + admin filter/summary + CSV export | ☑ |
 | NFR5  | Cross-browser   | Chrome + Edge                                | `web` (standard modern web)   | ☑      |
 | NFR6  | Technology      | Web (PC) + Android/iOS                        | `web` + Flutter `mobile`      | ☑      |
 | NFR7  | Data security   | ISO/IEC 27001 alignment, encryption          | `backend/lib/crypto` (AES-GCM)| ☑      |
