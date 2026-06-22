@@ -19,10 +19,10 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}
+      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
     >
       {title && (
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {title}
         </h2>
       )}
@@ -44,7 +44,8 @@ export function Button({
 }: ButtonProps) {
   const styles: Record<NonNullable<ButtonProps['variant']>, string> = {
     primary: 'bg-brand-500 text-white hover:bg-brand-600',
-    secondary: 'bg-slate-100 text-slate-800 hover:bg-slate-200',
+    secondary:
+      'bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
     danger: 'bg-red-600 text-white hover:bg-red-700',
   };
   return (
@@ -67,7 +68,7 @@ export function Field({
 }) {
   return (
     <label className="block text-sm">
-      <span className="mb-1 block font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">{label}</span>
       {children}
     </label>
   );
@@ -77,7 +78,7 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 ${props.className ?? ''}`}
+      className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-brand-500/30 ${props.className ?? ''}`}
     />
   );
 }
@@ -86,7 +87,7 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 ${props.className ?? ''}`}
+      className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-brand-500/30 ${props.className ?? ''}`}
     />
   );
 }
@@ -122,10 +123,12 @@ export function Alert({
   children: ReactNode;
 }) {
   const styles: Record<typeof tone, string> = {
-    error: 'border-red-200 bg-red-50 text-red-800',
-    warning: 'border-amber-200 bg-amber-50 text-amber-900',
-    info: 'border-brand-100 bg-brand-50 text-brand-700',
-    success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    error: 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200',
+    warning:
+      'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200',
+    info: 'border-brand-100 bg-brand-50 text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200',
+    success:
+      'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200',
   };
   return (
     <div className={`rounded-lg border px-4 py-3 text-sm ${styles[tone]}`}>
@@ -142,11 +145,11 @@ export function Badge({
   tone?: 'slate' | 'green' | 'red' | 'amber' | 'blue';
 }) {
   const styles: Record<typeof tone, string> = {
-    slate: 'bg-slate-100 text-slate-700',
-    green: 'bg-emerald-100 text-emerald-700',
-    red: 'bg-red-100 text-red-700',
-    amber: 'bg-amber-100 text-amber-800',
-    blue: 'bg-brand-100 text-brand-700',
+    slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+    red: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+    amber: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300',
+    blue: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-200',
   };
   return (
     <span

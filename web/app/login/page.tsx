@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { errorMessage } from '@/lib/errors';
 import { Alert, Button, Card, Field, Input, Spinner } from '@/components/ui';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth();
@@ -43,10 +44,13 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-brand-700">SMART LIFE</h1>
-          <p className="text-sm text-slate-500">Stop spending, start saving.</p>
+          <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300">SMART LIFE</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Stop spending, start saving.</p>
         </div>
         <Card title="Sign in">
           <form onSubmit={onSubmit} className="space-y-4">
@@ -73,9 +77,9 @@ export default function LoginPage() {
               {submitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-slate-500">
+          <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
             No account?{' '}
-            <Link href="/signup" className="font-medium text-brand-600 hover:underline">
+            <Link href="/signup" className="font-medium text-brand-600 hover:underline dark:text-brand-300">
               Create one
             </Link>
           </p>

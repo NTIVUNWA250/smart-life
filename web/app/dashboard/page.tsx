@@ -94,7 +94,7 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">
       <Card title="Spending this month">
-        <div className="text-2xl font-bold text-slate-900">
+        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
           {formatRwf(finance.spentRwf)}
         </div>
         <div className="mt-1 text-sm text-slate-500">
@@ -114,7 +114,7 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
       </Card>
 
       <Card title="Savings goals">
-        <div className="text-2xl font-bold text-slate-900">
+        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
           {formatRwf(savings.savedRwf)}
         </div>
         <div className="mt-1 text-sm text-slate-500">
@@ -130,7 +130,7 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
       </Card>
 
       <Card title="Screen time today">
-        <div className="text-2xl font-bold text-slate-900">
+        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
           {formatMinutes(time.totalUsedMin)}
         </div>
         <div className="mt-1 text-sm text-slate-500">
@@ -311,7 +311,10 @@ function GoalsList({ goals, onDone }: { goals: Goal[]; onDone: () => Promise<voi
           {goals.map((g) => (
             <li key={g.id}>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-slate-800">{g.title}</span>
+                <span className="font-medium text-slate-800 dark:text-slate-100">
+                  {g.title}
+                  {g.isAuto && <span className="ml-2"><Badge tone="blue">auto</Badge></span>}
+                </span>
                 <Badge tone={g.status === 'achieved' ? 'green' : 'slate'}>{g.status}</Badge>
               </div>
               <div className="mt-1 text-xs text-slate-500">
@@ -368,7 +371,7 @@ function RecentTransactions({
           {transactions.map((t) => (
             <li key={t.id} className="flex items-center justify-between py-2">
               <div>
-                <div className="text-sm font-medium text-slate-800">
+                <div className="text-sm font-medium text-slate-800 dark:text-slate-100">
                   {t.category}
                   {t.note ? ` · ${t.note}` : ''}
                 </div>
@@ -456,7 +459,7 @@ function ScreenTime({
         <ul className="divide-y divide-slate-100">
           {policies.map((p) => (
             <li key={p.id} className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium text-slate-800">{p.appOrSite}</span>
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{p.appOrSite}</span>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-500">
                   {formatMinutes(p.usedMin)} / {formatMinutes(p.dailyLimitMin)}

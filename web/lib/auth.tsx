@@ -19,6 +19,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   signup: (input: SignupInput) => Promise<void>;
   logout: () => Promise<void>;
+  /** Replace the cached user after a settings update. */
+  setUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -78,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, login, signup, logout }),
+    () => ({ user, loading, login, signup, logout, setUser }),
     [user, loading, login, signup, logout],
   );
 

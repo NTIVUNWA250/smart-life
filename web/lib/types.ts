@@ -52,6 +52,43 @@ export interface Goal {
   savedRwf: number;
   deadline: string;
   status: GoalStatus;
+  isAuto: boolean;
+  lastEditedAt: string | null;
+}
+
+export type Frequency = 'daily' | 'monthly' | 'yearly';
+
+export interface FinanceProfile {
+  id: string;
+  userId: string;
+  incomeRwf: number;
+  incomeFrequency: Frequency;
+  expensesRwf: number;
+  expenseFrequency: Frequency;
+  savingsRatePct: number;
+  lastEditedAt: string;
+}
+
+export interface FinanceDerived {
+  monthlyIncomeRwf: number;
+  monthlyExpensesRwf: number;
+  monthlySurplusRwf: number;
+  monthlySavingsRwf: number;
+  autoGoalTargetRwf: number;
+}
+
+export interface FinanceResponse {
+  profile: FinanceProfile | null;
+  derived: FinanceDerived | null;
+  canEditNow: boolean;
+}
+
+export interface FinanceInput {
+  incomeRwf: number;
+  incomeFrequency: Frequency;
+  expensesRwf: number;
+  expenseFrequency: Frequency;
+  savingsRatePct?: number;
 }
 
 export interface ScreenTimePolicy {
@@ -150,4 +187,14 @@ export interface AuditLogEntry {
 export interface AuditSummaryEntry {
   action: string;
   count: number;
+}
+
+export type NotificationType = 'approval' | 'denial' | 'reminder';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  createdAt: string;
 }

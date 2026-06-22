@@ -12,8 +12,11 @@ import type {
   ApprovalStatus,
   AuthResult,
   AuthTokens,
+  FinanceInput,
+  FinanceResponse,
   Goal,
   GoalStatus,
+  Notification,
   PeerLinkAsApprover,
   PeerLinkAsStudent,
   PeerLinks,
@@ -158,8 +161,10 @@ export interface SignupInput {
   name: string;
   email: string;
   password: string;
-  role?: Role;
+  // `admin` is intentionally excluded — internal/developer role only.
+  role?: Exclude<Role, 'admin'>;
   isMinor?: boolean;
+  finance?: FinanceInput;
 }
 
 export const api = {
@@ -173,8 +178,27 @@ export const api = {
         auth: false,
       }),
     me: () => request<{ user: User }>('/auth/me'),
+    updateProfile: (input: { name?: string; email?: string }) =>
+      request<{ user: User }>('/auth/me', { method: 'PATCH', body: input }),
+    changePassword: (currentPassword: string, newPassword: string) =>
+      request<void>('/auth/change-password', {
+        method: 'POST',
+        body: { currentPassword, newPassword },
+      }),
     logout: (refreshToken: string) =>
       request<void>('/auth/logout', { method: 'POST', body: { refreshToken } }),
+  },
+
+  // ---- Finance profile ---------------------------------------------------
+  finance: {
+    get: () => request<FinanceResponse>('/finance'),
+    save: (input: FinanceInput) =>
+      request<FinanceResponse>('/finance', { method: 'PUT', body: input }),
+  },
+
+  // ---- Notifications -----------------------------------------------------
+  notifications: {
+    list: () => request<{ items: Notification[] }>('/notifications'),
   },
 
   // ---- Transactions ------------------------------------------------------
@@ -203,18 +227,20 @@ export const api = {
         method: 'POST',
         body: input,
       }),
-    update: (
-      id: string,
-      input: {
-        title?: string;
-        targetRwf?: number;
-        deadline?: string;
-        addSavedRwf?: number;
-        status?: GoalStatus;
-      },
-    ) =>
+    // Progress / status only. Definition edits go through editRequest below.
+    update: (id: string, input: { addSavedRwf?: number; status?: GoalStatus }) =>
       request<{ goal: Goal; limit: SpendingLimit }>(`/goals/${id}`, {
         method: 'PATCH',
+        body: input,
+      }),
+    // Request a title/target/deadline change — routed through an approver
+    // (parent for minors, peer for adults) and allowed once a month.
+    editRequest: (
+      id: string,
+      input: { title?: string; targetRwf?: number; deadline?: string; reason?: string },
+    ) =>
+      request<{ approval: Approval }>(`/goals/${id}/edit-request`, {
+        method: 'POST',
         body: input,
       }),
   },
