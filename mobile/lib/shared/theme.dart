@@ -7,10 +7,15 @@ class AppTheme {
 
   static const Color _seed = Color(0xFF1565C0); // SMART LIFE blue
 
-  static ThemeData light() {
-    final scheme = ColorScheme.fromSeed(seedColor: _seed);
+  static ThemeData light() => _build(Brightness.light);
+
+  static ThemeData dark() => _build(Brightness.dark);
+
+  static ThemeData _build(Brightness brightness) {
+    final scheme = ColorScheme.fromSeed(seedColor: _seed, brightness: brightness);
     return ThemeData(
       colorScheme: scheme,
+      brightness: brightness,
       useMaterial3: true,
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
