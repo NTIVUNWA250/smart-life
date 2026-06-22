@@ -15,15 +15,18 @@ screentimeRouter.get(
 );
 
 const upsertSchema = z.object({
-  appOrSite: z.string().min(1).max(120),
+  // For kind=url this may be a domain or full URL; the server normalises to a host.
+  appOrSite: z.string().min(1).max(2048),
   dailyLimitMin: z.number().int().min(0).max(1440),
+  kind: z.enum(['app', 'url']).default('url'),
+  label: z.string().max(120).optional(),
 });
 
 screentimeRouter.post(
   '/policies',
   asyncHandler(async (req, res) => {
     const input = upsertSchema.parse(req.body);
-    const policy = await screentime.upsertPolicy(req.user!.id, input.appOrSite, input.dailyLimitMin);
+    const policy = await screentime.upsertPolicy(req.user!.id, input);
     res.status(201).json({ policy });
   }),
 );

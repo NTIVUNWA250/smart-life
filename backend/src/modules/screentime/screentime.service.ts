@@ -1,9 +1,10 @@
-import type { ScreenTimePolicy } from '@prisma/client';
+import type { ScreenTargetKind, ScreenTimePolicy } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { providers } from '../../providers/index.js';
 import { notFound } from '../../lib/http-error.js';
 import { isNewUtcDay } from '../../lib/period.js';
 import { audit } from '../../lib/audit.js';
+import { normalizeTarget } from './screentime.targets.js';
 
 export async function listPolicies(userId: string): Promise<ScreenTimePolicy[]> {
   return prisma.screenTimePolicy.findMany({ where: { userId }, orderBy: { appOrSite: 'asc' } });
@@ -11,13 +12,19 @@ export async function listPolicies(userId: string): Promise<ScreenTimePolicy[]> 
 
 export async function upsertPolicy(
   userId: string,
-  appOrSite: string,
-  dailyLimitMin: number,
+  input: { appOrSite: string; dailyLimitMin: number; kind: ScreenTargetKind; label?: string },
 ): Promise<ScreenTimePolicy> {
+  const target = normalizeTarget(input.kind, input.appOrSite, input.label);
   return prisma.screenTimePolicy.upsert({
-    where: { userId_appOrSite: { userId, appOrSite } },
-    update: { dailyLimitMin },
-    create: { userId, appOrSite, dailyLimitMin },
+    where: { userId_appOrSite: { userId, appOrSite: target.appOrSite } },
+    update: { dailyLimitMin: input.dailyLimitMin, kind: target.kind, label: target.label },
+    create: {
+      userId,
+      appOrSite: target.appOrSite,
+      kind: target.kind,
+      label: target.label,
+      dailyLimitMin: input.dailyLimitMin,
+    },
   });
 }
 

@@ -39,6 +39,11 @@ enum Frequency {
   yearly
 }
 
+enum ScreenTargetKind {
+  app
+  url
+}
+
 enum ApprovalStatus {
   pending
   approved
@@ -166,16 +171,20 @@ model SpendingLimit {
 }
 
 model ScreenTimePolicy {
-  id            String   @id @default(uuid())
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String           @id @default(uuid())
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  // Stable identifier: a host (kind=url) or an app package/bundle id (kind=app).
   appOrSite     String
+  kind          ScreenTargetKind @default(url)
+  // Human-friendly name shown in the UI (e.g. "Instagram"); falls back to appOrSite.
+  label         String?
   dailyLimitMin Int
-  usedMin       Int      @default(0)
-  isBlocked     Boolean  @default(false)
-  resetAt       DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  usedMin       Int              @default(0)
+  isBlocked     Boolean          @default(false)
+  resetAt       DateTime         @default(now())
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@unique([userId, appOrSite])
   @@index([userId])
