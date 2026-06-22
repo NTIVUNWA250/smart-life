@@ -10,3 +10,21 @@ export function assertWholeRwf(amount: number, field = 'amount'): void {
     throw new Error(`${field} must be a non-negative whole number of RWF`);
   }
 }
+
+export type Frequency = 'daily' | 'monthly' | 'yearly';
+
+/**
+ * Normalises an amount entered at some frequency to a whole-RWF monthly figure.
+ * Daily uses a 30-day month; yearly divides across 12 months.
+ */
+export function toMonthlyRwf(amount: number, frequency: Frequency): number {
+  switch (frequency) {
+    case 'daily':
+      return Math.round(amount * 30);
+    case 'yearly':
+      return Math.round(amount / 12);
+    case 'monthly':
+    default:
+      return Math.round(amount);
+  }
+}

@@ -30,6 +30,13 @@ enum GoalStatus {
 enum ApprovalKind {
   spending
   screentime
+  goal_edit
+}
+
+enum Frequency {
+  daily
+  monthly
+  yearly
 }
 
 enum ApprovalStatus {
@@ -65,6 +72,7 @@ model User {
   screenTimePolicies ScreenTimePolicy[]
   refreshTokens      RefreshToken[]
   auditLogs          AuditLog[]
+  financeProfile     FinanceProfile?
 
   // Peer links
   linksAsStudent  PeerLink[] @relation("StudentLinks")
@@ -112,11 +120,34 @@ model Goal {
   savedRwf  Int        @default(0)
   deadline  DateTime
   status    GoalStatus @default(active)
+  // True for the savings goal auto-derived from the user's finance profile (FR3).
+  isAuto    Boolean    @default(false)
+  // Last time the goal *definition* (title/target/deadline) changed. Enforces the
+  // once-per-calendar-month edit rule; null until the first approved edit.
+  lastEditedAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   // active-goal lookups (spending-limit calc) filter by userId + status.
   @@index([userId, status])
+}
+
+// Income / expected-expenses captured at sign-up, used to auto-calculate the
+// savings goal (FR3). Editable at most once per calendar month, like goals.
+model FinanceProfile {
+  id               String    @id @default(uuid())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String    @unique
+  incomeRwf        Int
+  incomeFrequency  Frequency @default(monthly)
+  expensesRwf      Int
+  expenseFrequency Frequency @default(monthly)
+  // Share of monthly surplus (income − expenses) to auto-save, 0–100.
+  savingsRatePct   Int       @default(50)
+  // Last definition change; enforces the once-per-month edit rule.
+  lastEditedAt     DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model SpendingLimit {
@@ -174,6 +205,8 @@ model Approval {
   targetId    String
   // Encrypted free-text reason / context (SRS §2.4 — encryption for peer requests)
   reasonEnc   String?
+  // Encrypted JSON of the proposed change, applied on approval (kind=goal_edit).
+  proposedEnc String?
   status      ApprovalStatus @default(pending)
   decidedAt   DateTime?
   createdAt   DateTime       @default(now())

@@ -6,7 +6,13 @@ import { prisma } from '../../lib/prisma.js';
 import { env } from '../../lib/env.js';
 import { sha256 } from '../../lib/crypto.js';
 import { conflict, unauthorized } from '../../lib/http-error.js';
-import type { SignupInput, LoginInput } from './auth.schemas.js';
+import { createProfile } from '../finance/finance.service.js';
+import type {
+  SignupInput,
+  LoginInput,
+  UpdateProfileInput,
+  ChangePasswordInput,
+} from './auth.schemas.js';
 
 export interface AuthTokens {
   accessToken: string;
@@ -75,6 +81,11 @@ export async function signup(
     },
   });
 
+  // Onboarding income/expenses seed the auto-calculated savings goal (FR3).
+  if (input.finance) {
+    await createProfile(user.id, input.finance);
+  }
+
   return { user: toPublicUser(user), tokens: await issueTokens(user) };
 }
 
@@ -108,6 +119,44 @@ export async function refresh(rawRefreshToken: string): Promise<AuthTokens> {
   });
 
   return issueTokens(stored.user);
+}
+
+/** Settings: update the user's name and/or email (email must stay unique). */
+export async function updateProfile(
+  userId: string,
+  input: UpdateProfileInput,
+): Promise<PublicUser> {
+  if (input.email) {
+    const clash = await prisma.user.findUnique({ where: { email: input.email } });
+    if (clash && clash.id !== userId) {
+      throw conflict('An account with this email already exists');
+    }
+  }
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { name: input.name, email: input.email },
+  });
+  return toPublicUser(user);
+}
+
+/** Settings: change password after verifying the current one; revokes sessions. */
+export async function changePassword(
+  userId: string,
+  input: ChangePasswordInput,
+): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw unauthorized();
+
+  const ok = await bcrypt.compare(input.currentPassword, user.passwordHash);
+  if (!ok) throw unauthorized('Current password is incorrect');
+
+  const passwordHash = await bcrypt.hash(input.newPassword, 12);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  // Force re-login elsewhere by revoking all outstanding refresh tokens.
+  await prisma.refreshToken.updateMany({
+    where: { userId, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 }
 
 export async function logout(rawRefreshToken: string): Promise<void> {

@@ -8,6 +8,7 @@ import { encryptField, decryptField } from '../../lib/crypto.js';
 import { audit } from '../../lib/audit.js';
 import { unblock as unblockSpending } from '../limits/limits.service.js';
 import { setPolicyBlocked } from '../screentime/screentime.service.js';
+import { applyApprovedGoalEdit } from '../goals/goals.service.js';
 
 export const approvalsRouter = Router();
 approvalsRouter.use(requireAuth);
@@ -66,6 +67,7 @@ approvalsRouter.get(
         ...a,
         reason: a.reasonEnc ? decryptField(a.reasonEnc) : null,
         reasonEnc: undefined,
+        proposedEnc: undefined,
       })),
     });
   }),
@@ -92,8 +94,10 @@ approvalsRouter.patch(
     if (status === 'approved') {
       if (approval.kind === 'spending') {
         await unblockSpending(approval.requesterId);
-      } else {
+      } else if (approval.kind === 'screentime') {
         await setPolicyBlocked(approval.requesterId, approval.targetId, false);
+      } else if (approval.kind === 'goal_edit') {
+        await applyApprovedGoalEdit(approval);
       }
     }
 

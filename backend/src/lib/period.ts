@@ -22,3 +22,13 @@ export function monthsUntil(deadline: Date, now = new Date()): number {
     (deadline.getUTCMonth() - now.getUTCMonth());
   return Math.max(1, months);
 }
+
+/** True when both dates fall in the same UTC calendar month. */
+export function isSameUtcMonth(a: Date, b = new Date()): boolean {
+  return a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth();
+}
+
+/** A date `months` calendar months after `now`, in UTC. Used for auto-goal deadlines. */
+export function addUtcMonths(months: number, now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + months, now.getUTCDate()));
+}

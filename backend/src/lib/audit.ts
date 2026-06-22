@@ -13,12 +13,18 @@ export type AuditAction =
   | 'auth.signup'
   | 'auth.login'
   | 'auth.logout'
+  | 'auth.profile.updated'
+  | 'auth.password.changed'
   | 'limit.blocked'
   | 'limit.unblocked'
   | 'approval.created'
   | 'approval.decided'
   | 'screentime.blocked'
-  | 'admin.user.updated';
+  | 'admin.user.updated'
+  | 'finance.profile.created'
+  | 'finance.profile.updated'
+  | 'goal.edit.requested'
+  | 'goal.edited';
 
 export async function audit(
   action: AuditAction,

@@ -7,7 +7,13 @@ import { notFound } from '../../lib/http-error.js';
 import { audit } from '../../lib/audit.js';
 import * as authService from './auth.service.js';
 import { toPublicUser } from './auth.service.js';
-import { loginSchema, refreshSchema, signupSchema } from './auth.schemas.js';
+import {
+  changePasswordSchema,
+  loginSchema,
+  refreshSchema,
+  signupSchema,
+  updateProfileSchema,
+} from './auth.schemas.js';
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -65,5 +71,29 @@ authRouter.get(
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!user) throw notFound('User not found');
     res.json({ user: toPublicUser(user) });
+  }),
+);
+
+// Settings: update name/email.
+authRouter.patch(
+  '/me',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const input = updateProfileSchema.parse(req.body);
+    const user = await authService.updateProfile(req.user!.id, input);
+    await audit('auth.profile.updated', user.id);
+    res.json({ user });
+  }),
+);
+
+// Settings: change password (revokes other sessions).
+authRouter.post(
+  '/change-password',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const input = changePasswordSchema.parse(req.body);
+    await authService.changePassword(req.user!.id, input);
+    await audit('auth.password.changed', req.user!.id);
+    res.status(204).end();
   }),
 );
