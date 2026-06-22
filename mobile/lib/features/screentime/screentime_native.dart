@@ -16,10 +16,48 @@ import 'package:flutter/services.dart';
 /// builds report nothing rather than fake data. Either way the backend
 /// (`POST /screentime/usage`) owns the limit/blocking decisions, so swapping in
 /// the native source later only changes this one class.
+/// A blockable app chosen by the user: an opaque platform [id] (Android package
+/// name, or an iOS Screen-Time token) and a human-friendly [label].
+typedef AppChoice = ({String id, String label});
+
 class ScreenTimeNative {
   const ScreenTimeNative();
 
   static const MethodChannel _channel = MethodChannel('smartlife/screentime');
+
+  /// Common apps offered as a fallback picker when the native module is not
+  /// wired up (so the flow stays demoable). Ids are real Android package names.
+  static const List<AppChoice> commonApps = [
+    (id: 'com.instagram.android', label: 'Instagram'),
+    (id: 'com.zhiliaoapp.musically', label: 'TikTok'),
+    (id: 'com.google.android.youtube', label: 'YouTube'),
+    (id: 'com.whatsapp', label: 'WhatsApp'),
+    (id: 'com.twitter.android', label: 'X (Twitter)'),
+    (id: 'com.facebook.katana', label: 'Facebook'),
+    (id: 'com.snapchat.android', label: 'Snapchat'),
+  ];
+
+  /// Opens the native app picker and returns the chosen app, or null if the user
+  /// cancels OR the native module is not available on this platform/build.
+  ///
+  ///   - **Android:** an installed-apps picker (needs `QUERY_ALL_PACKAGES`).
+  ///   - **iOS:** the system `FamilyActivityPicker` (Screen Time API), which
+  ///     returns an opaque token and needs the Family Controls entitlement.
+  ///
+  /// When null is returned, the UI falls back to [commonApps].
+  Future<AppChoice?> pickApp() async {
+    try {
+      final raw = await _channel.invokeMapMethod<String, dynamic>('pickApp');
+      final id = raw?['id'] as String?;
+      if (id == null || id.isEmpty) return null;
+      return (id: id, label: (raw?['label'] as String?) ?? id);
+    } on MissingPluginException {
+      return null; // native picker not wired on this build/platform
+    } on PlatformException catch (e) {
+      debugPrint('ScreenTimeNative.pickApp failed: ${e.code} ${e.message}');
+      return null;
+    }
+  }
 
   /// Returns today's used minutes per app/site id, keyed by the same ids passed in.
   Future<Map<String, int>> usageFor(List<String> appsOrSites) async {

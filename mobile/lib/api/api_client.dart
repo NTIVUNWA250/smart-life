@@ -237,9 +237,18 @@ class ApiClient {
         .toList();
   }
 
-  Future<void> upsertPolicy(String appOrSite, int dailyLimitMin) =>
-      _send('POST', '/screentime/policies',
-          body: {'appOrSite': appOrSite, 'dailyLimitMin': dailyLimitMin});
+  Future<void> upsertPolicy(
+    String appOrSite,
+    int dailyLimitMin, {
+    String kind = 'url',
+    String? label,
+  }) =>
+      _send('POST', '/screentime/policies', body: {
+        'appOrSite': appOrSite,
+        'dailyLimitMin': dailyLimitMin,
+        'kind': kind,
+        'label': ?label,
+      });
 
   Future<List<ScreenTimePolicy>> reportUsage(
       List<Map<String, Object>> usage) async {

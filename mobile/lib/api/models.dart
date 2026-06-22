@@ -161,6 +161,8 @@ class ScreenTimePolicy {
   ScreenTimePolicy({
     required this.id,
     required this.appOrSite,
+    required this.kind,
+    this.label,
     required this.dailyLimitMin,
     required this.usedMin,
     required this.isBlocked,
@@ -168,9 +170,15 @@ class ScreenTimePolicy {
 
   final String id;
   final String appOrSite;
+  final String kind; // 'app' | 'url'
+  final String? label;
   final int dailyLimitMin;
   final int usedMin;
   final bool isBlocked;
+
+  /// Friendly name for display (label, falling back to the raw identifier).
+  String get displayName => (label != null && label!.isNotEmpty) ? label! : appOrSite;
+  bool get isApp => kind == 'app';
 
   double get usage =>
       dailyLimitMin <= 0 ? 0 : (usedMin / dailyLimitMin).clamp(0.0, 1.0);
@@ -178,6 +186,8 @@ class ScreenTimePolicy {
   factory ScreenTimePolicy.fromJson(Map<String, dynamic> j) => ScreenTimePolicy(
         id: j['id'] as String,
         appOrSite: j['appOrSite'] as String,
+        kind: j['kind'] as String? ?? 'url',
+        label: j['label'] as String?,
         dailyLimitMin: _int(j['dailyLimitMin']),
         usedMin: _int(j['usedMin']),
         isBlocked: j['isBlocked'] as bool? ?? false,

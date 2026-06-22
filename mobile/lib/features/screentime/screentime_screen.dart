@@ -6,8 +6,8 @@ import '../../shared/format.dart';
 import '../../shared/widgets.dart';
 import 'screentime_native.dart';
 
-/// Screen-time limits: list policies, set a daily limit, and sync usage from the
-/// (stubbed) OS provider to the backend.
+/// Screen-time limits: block an app or a website for a daily time budget, and
+/// sync usage from the (stubbed) OS provider to the backend.
 class ScreenTimeScreen extends StatefulWidget {
   const ScreenTimeScreen({super.key, required this.api});
 
@@ -29,14 +29,98 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
 
   void _reload() => setState(() => _future = widget.api.listPolicies());
 
+  Future<void> _save(String appOrSite, int min, {required String kind, String? label}) async {
+    try {
+      await widget.api.upsertPolicy(appOrSite, min, kind: kind, label: label);
+      _reload();
+    } catch (e) {
+      if (mounted) showSnack(context, e.toString());
+    }
+  }
+
+  /// Choose what to block: an installed app, or a website URL.
   Future<void> _addPolicy() async {
-    final result = await showDialog<({String app, int min})>(
+    final kind = await showModalBottomSheet<String>(
       context: context,
-      builder: (_) => const _AddPolicyDialog(),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.apps),
+              title: const Text('Block an app'),
+              subtitle: const Text('Choose an app installed on your phone'),
+              onTap: () => Navigator.pop(context, 'app'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Block a website'),
+              subtitle: const Text('Enter a domain or full URL'),
+              onTap: () => Navigator.pop(context, 'url'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (kind == 'app') {
+      await _addApp();
+    } else if (kind == 'url') {
+      await _addWebsite();
+    }
+  }
+
+  Future<void> _addApp() async {
+    // Try the native picker first; fall back to a curated list if unavailable.
+    var choice = await _native.pickApp();
+    if (!mounted) return;
+    choice ??= await _pickFromCommonApps();
+    if (choice == null || !mounted) return;
+
+    final min = await _askMinutes('Daily limit for ${choice.label}');
+    if (min == null) return;
+    await _save(choice.id, min, kind: 'app', label: choice.label);
+  }
+
+  Future<AppChoice?> _pickFromCommonApps() {
+    return showModalBottomSheet<AppChoice>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Choose an app', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            for (final app in ScreenTimeNative.commonApps)
+              ListTile(
+                leading: const Icon(Icons.apps),
+                title: Text(app.label),
+                subtitle: Text(app.id),
+                onTap: () => Navigator.pop(context, app),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addWebsite() async {
+    final result = await showDialog<({String url, int min})>(
+      context: context,
+      builder: (_) => const _WebsiteDialog(),
     );
     if (result == null) return;
-    await widget.api.upsertPolicy(result.app, result.min);
-    _reload();
+    // The backend normalises the domain/URL to a host and labels it.
+    await _save(result.url, result.min, kind: 'url');
+  }
+
+  Future<int?> _askMinutes(String title) {
+    return showDialog<int>(
+      context: context,
+      builder: (_) => _MinutesDialog(title: title),
+    );
   }
 
   /// Pulls usage from the OS provider stub and reports it to the backend, which
@@ -70,7 +154,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
           if (policies.isEmpty) {
             return const EmptyState(
               icon: Icons.timer_outlined,
-              message: 'No screen-time limits yet.\nTap + to add one.',
+              message: 'No screen-time limits yet.\nTap + to block an app or website.',
             );
           }
           return Column(
@@ -90,7 +174,8 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                   itemBuilder: (context, i) {
                     final p = policies[i];
                     return ListTile(
-                      title: Text(p.appOrSite),
+                      leading: Icon(p.isApp ? Icons.apps : Icons.language),
+                      title: Text(p.displayName),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -121,34 +206,58 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
   }
 }
 
-class _AddPolicyDialog extends StatefulWidget {
-  const _AddPolicyDialog();
+/// Asks for a website (domain or full URL) and a daily minute budget.
+class _WebsiteDialog extends StatefulWidget {
+  const _WebsiteDialog();
 
   @override
-  State<_AddPolicyDialog> createState() => _AddPolicyDialogState();
+  State<_WebsiteDialog> createState() => _WebsiteDialogState();
 }
 
-class _AddPolicyDialogState extends State<_AddPolicyDialog> {
-  final _app = TextEditingController();
+class _WebsiteDialogState extends State<_WebsiteDialog> {
+  final _url = TextEditingController();
   final _min = TextEditingController(text: '60');
+  String? _error;
 
   @override
   void dispose() {
-    _app.dispose();
+    _url.dispose();
     _min.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    final url = _url.text.trim();
+    final min = int.tryParse(_min.text);
+    // Light client-side check; the backend does the authoritative normalisation.
+    final looksValid = url.isNotEmpty && url.contains('.') && !url.contains(' ');
+    if (!looksValid) {
+      setState(() => _error = 'Enter a valid domain or URL (e.g. instagram.com)');
+      return;
+    }
+    if (min == null || min < 0) {
+      setState(() => _error = 'Enter a valid number of minutes');
+      return;
+    }
+    Navigator.pop(context, (url: url, min: min));
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Set a daily limit'),
+      title: const Text('Block a website'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
-            controller: _app,
-            decoration: const InputDecoration(labelText: 'App or site (e.g. instagram)'),
+            controller: _url,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            decoration: InputDecoration(
+              labelText: 'Domain or URL',
+              hintText: 'instagram.com',
+              errorText: _error,
+            ),
           ),
           TextField(
             controller: _min,
@@ -159,12 +268,47 @@ class _AddPolicyDialogState extends State<_AddPolicyDialog> {
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        FilledButton(onPressed: _submit, child: const Text('Save')),
+      ],
+    );
+  }
+}
+
+/// Asks for a daily minute budget (used after an app is chosen).
+class _MinutesDialog extends StatefulWidget {
+  const _MinutesDialog({required this.title});
+
+  final String title;
+
+  @override
+  State<_MinutesDialog> createState() => _MinutesDialogState();
+}
+
+class _MinutesDialogState extends State<_MinutesDialog> {
+  final _min = TextEditingController(text: '60');
+
+  @override
+  void dispose() {
+    _min.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: TextField(
+        controller: _min,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(labelText: 'Daily limit (minutes)'),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
         FilledButton(
           onPressed: () {
-            final app = _app.text.trim();
             final min = int.tryParse(_min.text);
-            if (app.isEmpty || min == null || min < 0) return;
-            Navigator.pop(context, (app: app, min: min));
+            if (min == null || min < 0) return;
+            Navigator.pop(context, min);
           },
           child: const Text('Save'),
         ),
