@@ -1,4 +1,16 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Screen-time (FR5): blocking/usage enforcement permissions.
+         PACKAGE_USAGE_STATS is a special-access permission the user grants in
+         Settings; it backs per-app usage reporting once the native service is added. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- For a FULL installed-apps list, a parental-control app may request the
+         sensitive QUERY_ALL_PACKAGES permission (Play Store review required).
+         The app picker only needs the launcher <queries> entry below, so this is
+         left commented until full enumeration is needed:
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" /> -->
     <application
         android:label="smartlife"
         android:name="${applicationName}"
@@ -40,6 +52,12 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Screen-time app picker: resolve user-facing (launchable) apps so the
+             native pickApp() handler can list them without QUERY_ALL_PACKAGES. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
         </intent>
     </queries>
 </manifest>
