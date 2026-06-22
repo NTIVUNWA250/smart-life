@@ -34,21 +34,63 @@ async function main() {
     create: { studentId: student.id, approverId: parent.id, relationship: 'parent', status: 'accepted' },
   });
 
-  // Some income + expenses this month
-  await prisma.transaction.createMany({
-    data: [
-      { userId: student.id, type: 'income', amountRwf: 150_000, category: 'allowance' },
-      { userId: student.id, type: 'expense', amountRwf: 20_000, category: 'food' },
-      { userId: student.id, type: 'expense', amountRwf: 15_000, category: 'transport' },
-    ],
+  // Some income + expenses this month (seed once; transactions have no natural key).
+  if ((await prisma.transaction.count({ where: { userId: student.id } })) === 0) {
+    await prisma.transaction.createMany({
+      data: [
+        { userId: student.id, type: 'income', amountRwf: 150_000, category: 'allowance' },
+        { userId: student.id, type: 'expense', amountRwf: 20_000, category: 'food' },
+        { userId: student.id, type: 'expense', amountRwf: 15_000, category: 'transport' },
+      ],
+    });
+  }
+
+  // A manually-created savings goal
+  const existingManual = await prisma.goal.findFirst({
+    where: { userId: student.id, title: 'Laptop fund' },
+  });
+  if (!existingManual) {
+    const deadline = new Date();
+    deadline.setUTCMonth(deadline.getUTCMonth() + 3);
+    await prisma.goal.create({
+      data: { userId: student.id, title: 'Laptop fund', targetRwf: 300_000, deadline },
+    });
+  }
+
+  // Finance profile captured at onboarding — drives the auto-calculated goal (FR3).
+  const profile = await prisma.financeProfile.upsert({
+    where: { userId: student.id },
+    update: {},
+    create: {
+      userId: student.id,
+      incomeRwf: 150_000,
+      incomeFrequency: 'monthly',
+      expensesRwf: 35_000,
+      expenseFrequency: 'monthly',
+      savingsRatePct: 50,
+    },
   });
 
-  // A savings goal
-  const deadline = new Date();
-  deadline.setUTCMonth(deadline.getUTCMonth() + 3);
-  await prisma.goal.create({
-    data: { userId: student.id, title: 'Laptop fund', targetRwf: 300_000, deadline },
+  // Auto savings goal: save savingsRate% of monthly surplus across a 12-month horizon.
+  // (Seed income/expenses are monthly, so no frequency normalisation is needed here.)
+  const monthlySurplus = Math.max(0, profile.incomeRwf - profile.expensesRwf);
+  const monthlySavings = Math.floor((monthlySurplus * profile.savingsRatePct) / 100);
+  const autoDeadline = new Date();
+  autoDeadline.setUTCMonth(autoDeadline.getUTCMonth() + 12);
+  const existingAuto = await prisma.goal.findFirst({
+    where: { userId: student.id, isAuto: true },
   });
+  if (!existingAuto) {
+    await prisma.goal.create({
+      data: {
+        userId: student.id,
+        title: 'Auto savings plan',
+        targetRwf: monthlySavings * 12,
+        deadline: autoDeadline,
+        isAuto: true,
+      },
+    });
+  }
 
   // Screen-time policies
   await prisma.screenTimePolicy.upsert({
@@ -57,7 +99,10 @@ async function main() {
     create: { userId: student.id, appOrSite: 'instagram', dailyLimitMin: 60 },
   });
 
-  console.log('Seed complete. Login with student@smartlife.rw / password123');
+  console.log(
+    `Seed complete. Login with student@smartlife.rw / password123` +
+      ` (auto savings goal: RWF ${(monthlySavings * 12).toLocaleString('en-RW')})`,
+  );
 }
 
 main()
