@@ -102,6 +102,30 @@ describe('progressiveSavingsBasePct', () => {
 });
 
 describe('suggestBudget', () => {
+  it('reserves a 10% unexpected buffer instead of zeroing it (60% expenses)', () => {
+    const s = suggestBudget({
+      monthlyIncomeRwf: 500_000,
+      expectedPct: 60,
+      goalRemainingRwf: 100_000,
+      goalRequiredPerMonthRwf: 20_000, // modest
+    });
+    expect(s.expectedPct).toBe(60);
+    expect(s.unexpectedPct).toBe(10); // buffer reserved
+    expect(s.savingsPct).toBe(30); // progressive 40 ceded to the buffer
+    expect(s.expectedPct + s.unexpectedPct + s.savingsPct).toBe(100);
+  });
+
+  it('shrinks the buffer when goals need the room', () => {
+    const s = suggestBudget({
+      monthlyIncomeRwf: 200_000,
+      expectedPct: 40,
+      goalRemainingRwf: 600_000,
+      goalRequiredPerMonthRwf: 110_000, // 55% of income
+    });
+    expect(s.savingsPct).toBe(55);
+    expect(s.unexpectedPct).toBe(5); // buffer shrank from 10 → 5 to fund goals
+  });
+
   it('uses the income-progressive floor when goals are modest', () => {
     const s = suggestBudget({
       monthlyIncomeRwf: 500_000,

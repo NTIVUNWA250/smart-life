@@ -6,6 +6,7 @@ import type { Frequency } from './types';
 
 export const SAVINGS_FLOOR_PCT = 30;
 export const MAX_EXPENSES_PCT = 70;
+export const TARGET_UNEXPECTED_BUFFER_PCT = 10;
 export const DEFAULT_MODEL_ID = 'sixty_solution';
 export const CUSTOM_MODEL_ID = 'custom';
 
@@ -80,9 +81,14 @@ export interface BudgetSuggestion {
 export function suggestBudgetClient(monthlyIncomeRwf: number, expectedPct: number): BudgetSuggestion {
   const income = Math.max(0, monthlyIncomeRwf);
   const exp = Math.min(MAX_EXPENSES_PCT, Math.max(0, Math.round(expectedPct)));
-  const maxSavings = 100 - exp;
-  const savingsPct = Math.min(maxSavings, Math.max(SAVINGS_FLOOR_PCT, progressiveSavingsBasePct(income)));
-  const unexpectedPct = Math.max(0, 100 - exp - savingsPct);
+  // Mirror of backend suggestBudget (no goals here, so the savings floor is 30%):
+  // reserve up to a 10% unexpected buffer, then let the progressive target fill the rest.
+  const maxRoom = 100 - exp;
+  const savingsHardFloor = Math.min(maxRoom, SAVINGS_FLOOR_PCT);
+  const buffer = Math.min(TARGET_UNEXPECTED_BUFFER_PCT, maxRoom - savingsHardFloor);
+  const savingsCeiling = maxRoom - buffer;
+  const savingsPct = Math.max(savingsHardFloor, Math.min(savingsCeiling, progressiveSavingsBasePct(income)));
+  const unexpectedPct = maxRoom - savingsPct;
   return {
     expectedPct: exp,
     unexpectedPct,
@@ -90,7 +96,7 @@ export function suggestBudgetClient(monthlyIncomeRwf: number, expectedPct: numbe
     monthlySavingsRwf: Math.round((income * savingsPct) / 100),
     monthsToReachGoals: 0,
     meetsGoalDeadlines: true,
-    rationale: `Saving ${savingsPct}% — this rate rises as your income grows. Add goals to get a goal-based suggestion.`,
+    rationale: `Saving ${savingsPct}% with a ${unexpectedPct}% unexpected buffer — savings rises as your income grows. Add goals to get a goal-based suggestion.`,
   };
 }
 

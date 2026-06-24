@@ -6,6 +6,8 @@ import { toMonthlyRwf, type Frequency } from '../../lib/money.js';
  *  and unexpected expenses is otherwise free. */
 export const SAVINGS_FLOOR_PCT = 30;
 export const MAX_EXPENSES_PCT = 70;
+/** Buffer the suggestion reserves for unexpected expenses (yields to floor + goals). */
+export const TARGET_UNEXPECTED_BUFFER_PCT = 10;
 
 export interface BudgetModel {
   id: string;
@@ -216,13 +218,17 @@ export function suggestBudget(input: SuggestInput): BudgetSuggestion {
   const goalReqPct = income > 0 ? Math.ceil((input.goalRequiredPerMonthRwf * 100) / income) : 0;
   const progressivePct = progressiveSavingsBasePct(income);
 
-  // Savings can use everything not claimed by expected expenses.
-  const maxSavingsPct = 100 - expectedPct;
-  const savingsPct = Math.min(
-    maxSavingsPct,
-    Math.max(SAVINGS_FLOOR_PCT, progressivePct, goalReqPct),
-  );
-  const unexpectedPct = Math.max(0, 100 - expectedPct - savingsPct);
+  // Allocate the room left after expenses with this priority:
+  //   1. savings hard floor (30%) + whatever the goals require,
+  //   2. an unexpected-expense buffer of up to 10% (shrinks if goals need the room),
+  //   3. the income-progressive target lifts savings into the room above the buffer.
+  const maxRoom = 100 - expectedPct;
+  const savingsHardFloor = Math.min(maxRoom, Math.max(SAVINGS_FLOOR_PCT, goalReqPct));
+  const buffer = Math.min(TARGET_UNEXPECTED_BUFFER_PCT, maxRoom - savingsHardFloor);
+  const savingsCeiling = maxRoom - buffer;
+  const savingsPct = Math.max(savingsHardFloor, Math.min(savingsCeiling, progressivePct));
+  // Unexpected absorbs the reserved buffer plus any room the savings target didn't claim.
+  const unexpectedPct = maxRoom - savingsPct;
 
   const monthlySavingsRwf = Math.round((income * savingsPct) / 100);
   const monthsToReachGoals =
@@ -237,7 +243,7 @@ export function suggestBudget(input: SuggestInput): BudgetSuggestion {
   } else if (meetsGoalDeadlines) {
     rationale = `Saving ${savingsPct}% funds your goals in ~${monthsToReachGoals} month(s) and meets their deadlines.`;
   } else {
-    rationale = `Your goals need ${goalReqPct}% to hit every deadline, but expenses only leave ${maxSavingsPct}%. Saving ${savingsPct}% reaches them in ~${monthsToReachGoals} month(s); cut expenses or extend deadlines to go faster.`;
+    rationale = `Your goals need ${goalReqPct}% to hit every deadline, but expenses only leave ${maxRoom}%. Saving ${savingsPct}% reaches them in ~${monthsToReachGoals} month(s); cut expenses or extend deadlines to go faster.`;
   }
 
   return {
