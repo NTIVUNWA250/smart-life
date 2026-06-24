@@ -111,7 +111,13 @@ export interface Allocation {
 
 /** Enforces the budgeting guardrails; throws a 400 on any violation. */
 export function validateAllocation(a: Allocation): void {
-  for (const [key, value] of Object.entries(a)) {
+  // Only the three percentage fields are checked (callers may pass a superset).
+  const pcts: ReadonlyArray<[string, number]> = [
+    ['expectedPct', a.expectedPct],
+    ['unexpectedPct', a.unexpectedPct],
+    ['savingsPct', a.savingsPct],
+  ];
+  for (const [key, value] of pcts) {
     if (!Number.isInteger(value) || value < 0 || value > 100) {
       throw badRequest(`${key} must be a whole number between 0 and 100`);
     }

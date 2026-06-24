@@ -40,6 +40,20 @@ describe('validateAllocation', () => {
   it('rejects savings below 30%', () => {
     expect(() => validateAllocation({ expectedPct: 70, unexpectedPct: 10, savingsPct: 20 })).toThrow();
   });
+
+  it('ignores extra fields when a superset (full input) is passed', () => {
+    // Regression: incomeRwf must not be treated as a percentage.
+    expect(() =>
+      validateAllocation({
+        incomeRwf: 200_000,
+        incomeFrequency: 'monthly',
+        budgetModel: 'sixty_solution',
+        expectedPct: 60,
+        unexpectedPct: 10,
+        savingsPct: 30,
+      } as unknown as Parameters<typeof validateAllocation>[0]),
+    ).not.toThrow();
+  });
 });
 
 describe('derive', () => {
