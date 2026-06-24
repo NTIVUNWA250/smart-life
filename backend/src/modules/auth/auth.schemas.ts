@@ -8,14 +8,15 @@ export const signupSchema = z.object({
   password: z.string().min(8).max(128),
   role: z.enum(['student', 'approver']).optional(),
   isMinor: z.boolean().optional(),
-  // Optional income/expenses captured during onboarding; seeds the auto savings goal.
+  // Optional budget captured during onboarding; seeds the auto savings goal.
   finance: z
     .object({
       incomeRwf: z.number().int().nonnegative(),
       incomeFrequency: z.enum(['daily', 'monthly', 'yearly']),
-      expensesRwf: z.number().int().nonnegative(),
-      expenseFrequency: z.enum(['daily', 'monthly', 'yearly']),
-      savingsRatePct: z.number().int().min(0).max(100).optional(),
+      budgetModel: z.string().min(1).max(40).default('sixty_solution'),
+      expectedPct: z.number().int().min(0).max(100),
+      unexpectedPct: z.number().int().min(0).max(100),
+      savingsPct: z.number().int().min(0).max(100),
     })
     .optional(),
 });

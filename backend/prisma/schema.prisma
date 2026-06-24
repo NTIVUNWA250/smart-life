@@ -139,20 +139,24 @@ model Goal {
 
 // Income / expected-expenses captured at sign-up, used to auto-calculate the
 // savings goal (FR3). Editable at most once per calendar month, like goals.
+// Percentage-based monthly budget (FR3). Income is split into expected expenses,
+// an unexpected-expense buffer (≤10%) and savings (≥30%, funds the goals). The
+// chosen budget model seeds these; users may customise within those guardrails.
 model FinanceProfile {
-  id               String    @id @default(uuid())
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           String    @unique
-  incomeRwf        Int
-  incomeFrequency  Frequency @default(monthly)
-  expensesRwf      Int
-  expenseFrequency Frequency @default(monthly)
-  // Share of monthly surplus (income − expenses) to auto-save, 0–100.
-  savingsRatePct   Int       @default(50)
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String    @unique
+  incomeRwf       Int
+  incomeFrequency Frequency @default(monthly)
+  // Identifier of the chosen budget model (e.g. "sixty_solution") or "custom".
+  budgetModel     String    @default("sixty_solution")
+  expectedPct     Int       @default(60)
+  unexpectedPct   Int       @default(10)
+  savingsPct      Int       @default(30)
   // Last definition change; enforces the once-per-month edit rule.
-  lastEditedAt     DateTime  @default(now())
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  lastEditedAt    DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model SpendingLimit {

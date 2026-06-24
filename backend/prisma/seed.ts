@@ -57,7 +57,7 @@ async function main() {
     });
   }
 
-  // Finance profile captured at onboarding — drives the auto-calculated goal (FR3).
+  // Budget profile captured at onboarding (FR3): the 60% Solution model.
   const profile = await prisma.financeProfile.upsert({
     where: { userId: student.id },
     update: {},
@@ -65,22 +65,27 @@ async function main() {
       userId: student.id,
       incomeRwf: 150_000,
       incomeFrequency: 'monthly',
-      expensesRwf: 35_000,
-      expenseFrequency: 'monthly',
-      savingsRatePct: 50,
+      budgetModel: 'sixty_solution',
+      expectedPct: 60,
+      unexpectedPct: 10,
+      savingsPct: 30,
     },
   });
 
-  // Auto savings goal: save savingsRate% of monthly surplus across a 12-month horizon.
-  // (Seed income/expenses are monthly, so no frequency normalisation is needed here.)
-  const monthlySurplus = Math.max(0, profile.incomeRwf - profile.expensesRwf);
-  const monthlySavings = Math.floor((monthlySurplus * profile.savingsRatePct) / 100);
+  // Auto savings goal: save savings% of monthly income across a 12-month horizon.
+  const monthlySavings = Math.floor((profile.incomeRwf * profile.savingsPct) / 100);
   const autoDeadline = new Date();
   autoDeadline.setUTCMonth(autoDeadline.getUTCMonth() + 12);
   const existingAuto = await prisma.goal.findFirst({
     where: { userId: student.id, isAuto: true },
   });
-  if (!existingAuto) {
+  if (existingAuto) {
+    // Keep the auto goal in sync with the current budget on re-seed.
+    await prisma.goal.update({
+      where: { id: existingAuto.id },
+      data: { targetRwf: monthlySavings * 12, deadline: autoDeadline },
+    });
+  } else {
     await prisma.goal.create({
       data: {
         userId: student.id,

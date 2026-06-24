@@ -4,6 +4,7 @@ import { asyncHandler } from '../../middleware/async-handler.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { isSameUtcMonth } from '../../lib/period.js';
 import * as finance from './finance.service.js';
+import { BUDGET_MODELS, derive } from './finance.budget.js';
 
 export const financeRouter = Router();
 financeRouter.use(requireAuth);
@@ -11,25 +12,32 @@ financeRouter.use(requireAuth);
 export const financeSchema = z.object({
   incomeRwf: z.number().int().nonnegative(),
   incomeFrequency: z.enum(['daily', 'monthly', 'yearly']),
-  expensesRwf: z.number().int().nonnegative(),
-  expenseFrequency: z.enum(['daily', 'monthly', 'yearly']),
-  savingsRatePct: z.number().int().min(0).max(100).optional(),
+  budgetModel: z.string().min(1).max(40).default('sixty_solution'),
+  expectedPct: z.number().int().min(0).max(100),
+  unexpectedPct: z.number().int().min(0).max(100),
+  savingsPct: z.number().int().min(0).max(100),
 });
 
-// Current profile, the derived monthly plan, and whether an edit is allowed now.
+// Current budget, the derived monthly figures, the selectable models, and whether
+// an edit is allowed now.
 financeRouter.get(
   '/',
   asyncHandler(async (req, res) => {
     const profile = await finance.getProfile(req.user!.id);
-    if (!profile) {
-      res.json({ profile: null, derived: null, canEditNow: true });
-      return;
-    }
     res.json({
       profile,
-      derived: finance.derive(profile),
-      canEditNow: !isSameUtcMonth(profile.lastEditedAt),
+      derived: profile ? derive(profile) : null,
+      canEditNow: profile ? !isSameUtcMonth(profile.lastEditedAt) : true,
+      models: BUDGET_MODELS,
     });
+  }),
+);
+
+// Standalone models list (e.g. for the sign-up dropdown before a profile exists).
+financeRouter.get(
+  '/models',
+  asyncHandler(async (_req, res) => {
+    res.json({ models: BUDGET_MODELS });
   }),
 );
 
@@ -41,6 +49,6 @@ financeRouter.put(
     const profile = existing
       ? await finance.updateProfile(req.user!.id, input)
       : await finance.createProfile(req.user!.id, input);
-    res.json({ profile, derived: finance.derive(profile) });
+    res.json({ profile, derived: derive(profile) });
   }),
 );

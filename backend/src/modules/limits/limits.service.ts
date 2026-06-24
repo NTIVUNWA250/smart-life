@@ -4,30 +4,45 @@ import { currentMonthPeriod, monthsUntil } from '../../lib/period.js';
 import { blockAllPayments, providers, unblockAllPayments } from '../../providers/index.js';
 import { logger } from '../../lib/logger.js';
 import { audit } from '../../lib/audit.js';
+import { derive } from '../finance/finance.budget.js';
+
+/** Monthly RWF that active goals require, to hit each target by its deadline. */
+async function requiredGoalSavingsRwf(userId: string): Promise<number> {
+  const goals = await prisma.goal.findMany({ where: { userId, status: 'active' } });
+  return goals.reduce((sum, g) => {
+    const remaining = Math.max(0, g.targetRwf - g.savedRwf);
+    return sum + Math.ceil(remaining / monthsUntil(g.deadline));
+  }, 0);
+}
 
 /**
- * Auto-calculated spending limit (FR3) for the current month:
+ * Spending limit (FR3) for the current month. When the user has a budget profile
+ * it is percentage-based and goal-aware:
  *
- *   limit = income(this month) − requiredSavings(this month)
+ *   limit = monthlyIncome − max(savingsBucket, requiredGoalSavings)
  *
- * where requiredSavings sums, over each active goal, the amount that must be set
- * aside this month to hit the goal by its deadline:
- *   ceil((targetRwf − savedRwf) / monthsUntil(deadline))
+ * where savingsBucket = savings% × income. The limit therefore reserves at least
+ * the savings allocation (≥30%), and tightens further if goals demand more — so
+ * it depends on income, the budget percentages, and the goals.
  *
+ * Without a profile it falls back to actual income(this month) − requiredSavings.
  * When spend reaches the limit, all payment channels are blocked (FR4).
  */
 async function computeLimitRwf(userId: string, periodStart: Date, periodEnd: Date): Promise<number> {
+  const requiredSavings = await requiredGoalSavingsRwf(userId);
+  const profile = await prisma.financeProfile.findUnique({ where: { userId } });
+
+  if (profile) {
+    const { monthlyIncomeRwf, savingsRwf } = derive(profile);
+    const reserved = Math.max(savingsRwf, requiredSavings);
+    return Math.max(0, monthlyIncomeRwf - reserved);
+  }
+
+  // Fallback: derive income from actual transactions when no budget is set.
   const income = await prisma.transaction.aggregate({
     _sum: { amountRwf: true },
     where: { userId, type: 'income', occurredAt: { gte: periodStart, lt: periodEnd } },
   });
-
-  const goals = await prisma.goal.findMany({ where: { userId, status: 'active' } });
-  const requiredSavings = goals.reduce((sum, g) => {
-    const remaining = Math.max(0, g.targetRwf - g.savedRwf);
-    return sum + Math.ceil(remaining / monthsUntil(g.deadline));
-  }, 0);
-
   const incomeTotal = income._sum.amountRwf ?? 0;
   return Math.max(0, incomeTotal - requiredSavings);
 }
