@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { errorMessage } from '@/lib/errors';
 import type { Frequency } from '@/lib/types';
-import { findModel, toMonthly, DEFAULT_MODEL_ID } from '@/lib/budget';
+import { findModel, toMonthly, suggestBudgetClient, DEFAULT_MODEL_ID } from '@/lib/budget';
 import { Alert, Button, Card, Field, Input, Select, Spinner } from '@/components/ui';
 import { BudgetFields, isBudgetValid, type BudgetValue } from '@/components/BudgetFields';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -209,7 +209,14 @@ export default function SignupPage() {
                 </Field>
               </div>
 
-              <BudgetFields value={budget} onChange={setBudget} monthlyIncomeRwf={monthlyIncome} />
+              <BudgetFields
+                value={budget}
+                onChange={setBudget}
+                monthlyIncomeRwf={monthlyIncome}
+                onSuggest={() =>
+                  Promise.resolve(suggestBudgetClient(monthlyIncome, budget.expectedPct))
+                }
+              />
 
               <div className="flex gap-3">
                 <Button type="button" variant="secondary" onClick={() => setStep(1)} disabled={submitting}>

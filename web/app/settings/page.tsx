@@ -136,15 +136,18 @@ function BudgetSection() {
   const [income, setIncome] = useState('');
   const [incomeFrequency, setIncomeFrequency] = useState<Frequency>('monthly');
   const [budget, setBudget] = useState<BudgetValue>(DEFAULT_BUDGET);
+  const [unexpectedIncome, setUnexpectedIncome] = useState('0');
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [incomeBusy, setIncomeBusy] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const res = await api.finance.get();
+      const [res, lim] = await Promise.all([api.finance.get(), api.limits.current()]);
       setData(res);
+      setUnexpectedIncome(String(lim.limit.unexpectedIncomeRwf));
       if (res.profile) {
         setIncome(String(res.profile.incomeRwf));
         setIncomeFrequency(res.profile.incomeFrequency);
@@ -161,6 +164,19 @@ function BudgetSection() {
       setLoading(false);
     }
   }, []);
+
+  async function saveUnexpectedIncome() {
+    setIncomeBusy(true);
+    setErr(null);
+    try {
+      await api.limits.setUnexpectedIncome(Number(unexpectedIncome) || 0);
+      setMsg('Unexpected income recorded for this month.');
+    } catch (e) {
+      setErr(errorMessage(e));
+    } finally {
+      setIncomeBusy(false);
+    }
+  }
 
   useEffect(() => {
     void load();
@@ -248,13 +264,47 @@ function BudgetSection() {
           value={budget}
           onChange={setBudget}
           monthlyIncomeRwf={monthlyIncome}
+          extraIncomeRwf={Number(unexpectedIncome) || 0}
           disabled={!canEdit}
+          onSuggest={async () => {
+            const { suggestion } = await api.finance.suggest({
+              incomeRwf: Number(income) || 0,
+              incomeFrequency,
+              expectedPct: budget.expectedPct,
+            });
+            return suggestion;
+          }}
         />
 
         <Button type="submit" disabled={busy || !canEdit || !isBudgetValid(budget)}>
           {busy ? 'Saving…' : 'Save budget'}
         </Button>
       </form>
+
+      <div className="mt-5 border-t border-slate-200 pt-4 dark:border-slate-800">
+        <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+          Unexpected income this month
+        </p>
+        <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+          Got extra money this month? Add it to raise this month&apos;s spendable limit and savings.
+          It doesn&apos;t change your saved budget.
+        </p>
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <Field label="Amount (RWF)">
+              <Input
+                type="number"
+                min={0}
+                value={unexpectedIncome}
+                onChange={(e) => setUnexpectedIncome(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Button type="button" variant="secondary" disabled={incomeBusy} onClick={() => void saveUnexpectedIncome()}>
+            {incomeBusy ? 'Saving…' : 'Apply'}
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }

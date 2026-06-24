@@ -12,8 +12,10 @@ import type {
   ApprovalStatus,
   AuthResult,
   AuthTokens,
+  BudgetSuggestion,
   FinanceInput,
   FinanceResponse,
+  Frequency,
   Goal,
   GoalStatus,
   Notification,
@@ -194,6 +196,16 @@ export const api = {
     get: () => request<FinanceResponse>('/finance'),
     save: (input: FinanceInput) =>
       request<FinanceResponse>('/finance', { method: 'PUT', body: input }),
+    suggest: (input: {
+      incomeRwf: number;
+      incomeFrequency: Frequency;
+      expectedPct?: number;
+      expectedExpensesRwf?: number;
+    }) =>
+      request<{ suggestion: BudgetSuggestion }>('/finance/suggest', {
+        method: 'POST',
+        body: input,
+      }),
   },
 
   // ---- Notifications -----------------------------------------------------
@@ -253,6 +265,11 @@ export const api = {
         '/limits/check',
         { method: 'POST', body: { amountRwf } },
       ),
+    setUnexpectedIncome: (amountRwf: number) =>
+      request<{ limit: SpendingLimit }>('/limits/unexpected-income', {
+        method: 'PUT',
+        body: { amountRwf },
+      }),
   },
 
   // ---- Screen time -------------------------------------------------------

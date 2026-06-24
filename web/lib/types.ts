@@ -39,7 +39,18 @@ export interface SpendingLimit {
   periodEnd: string;
   limitRwf: number;
   spentRwf: number;
+  unexpectedIncomeRwf: number;
   isBlocked: boolean;
+}
+
+export interface BudgetSuggestion {
+  expectedPct: number;
+  unexpectedPct: number;
+  savingsPct: number;
+  monthlySavingsRwf: number;
+  monthsToReachGoals: number;
+  meetsGoalDeadlines: boolean;
+  rationale: string;
 }
 
 export type GoalStatus = 'active' | 'achieved' | 'failed';

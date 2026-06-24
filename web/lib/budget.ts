@@ -5,7 +5,7 @@
 import type { Frequency } from './types';
 
 export const SAVINGS_FLOOR_PCT = 30;
-export const MAX_UNEXPECTED_PCT = 10;
+export const MAX_EXPENSES_PCT = 70;
 export const DEFAULT_MODEL_ID = 'sixty_solution';
 export const CUSTOM_MODEL_ID = 'custom';
 
@@ -45,13 +45,53 @@ export function validateBudget(a: Allocation): string | null {
   if (a.expectedPct + a.unexpectedPct + a.savingsPct !== 100) {
     return 'Percentages must total 100%.';
   }
-  if (a.unexpectedPct > MAX_UNEXPECTED_PCT) {
-    return `Unexpected expenses can be at most ${MAX_UNEXPECTED_PCT}%.`;
+  if (a.expectedPct + a.unexpectedPct > MAX_EXPENSES_PCT) {
+    return `Total expenses can be at most ${MAX_EXPENSES_PCT}%.`;
   }
   if (a.savingsPct < SAVINGS_FLOOR_PCT) {
     return `Savings must be at least ${SAVINGS_FLOOR_PCT}%.`;
   }
   return null;
+}
+
+/** Mirror of the backend progressive savings floor (rises with income). */
+export function progressiveSavingsBasePct(monthlyIncomeRwf: number): number {
+  if (monthlyIncomeRwf < 100_000) return 30;
+  if (monthlyIncomeRwf < 300_000) return 35;
+  if (monthlyIncomeRwf < 700_000) return 40;
+  if (monthlyIncomeRwf < 1_500_000) return 45;
+  return 50;
+}
+
+export interface BudgetSuggestion {
+  expectedPct: number;
+  unexpectedPct: number;
+  savingsPct: number;
+  monthlySavingsRwf: number;
+  monthsToReachGoals: number;
+  meetsGoalDeadlines: boolean;
+  rationale: string;
+}
+
+/**
+ * Client mirror of the backend suggestion, used at sign-up where there are no
+ * goals yet (goalRemaining / goalRequired = 0). Post-auth the API is used instead.
+ */
+export function suggestBudgetClient(monthlyIncomeRwf: number, expectedPct: number): BudgetSuggestion {
+  const income = Math.max(0, monthlyIncomeRwf);
+  const exp = Math.min(MAX_EXPENSES_PCT, Math.max(0, Math.round(expectedPct)));
+  const maxSavings = 100 - exp;
+  const savingsPct = Math.min(maxSavings, Math.max(SAVINGS_FLOOR_PCT, progressiveSavingsBasePct(income)));
+  const unexpectedPct = Math.max(0, 100 - exp - savingsPct);
+  return {
+    expectedPct: exp,
+    unexpectedPct,
+    savingsPct,
+    monthlySavingsRwf: Math.round((income * savingsPct) / 100),
+    monthsToReachGoals: 0,
+    meetsGoalDeadlines: true,
+    rationale: `Saving ${savingsPct}% — this rate rises as your income grows. Add goals to get a goal-based suggestion.`,
+  };
 }
 
 export function toMonthly(amount: number, freq: Frequency): number {
