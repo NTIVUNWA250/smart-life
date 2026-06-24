@@ -24,7 +24,10 @@ export type AuditAction =
   | 'finance.profile.created'
   | 'finance.profile.updated'
   | 'goal.edit.requested'
-  | 'goal.edited';
+  | 'goal.edited'
+  | 'timetable.entry.created'
+  | 'timetable.entry.updated'
+  | 'timetable.entry.deleted';
 
 export async function audit(
   action: AuditAction,

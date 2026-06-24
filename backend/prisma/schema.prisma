@@ -44,6 +44,18 @@ enum ScreenTargetKind {
   url
 }
 
+enum ActivityCategory {
+  study
+  work
+  exercise
+  meal
+  sleep
+  leisure
+  chore
+  social
+  other
+}
+
 enum ApprovalStatus {
   pending
   approved
@@ -78,6 +90,7 @@ model User {
   refreshTokens      RefreshToken[]
   auditLogs          AuditLog[]
   financeProfile     FinanceProfile?
+  timetableEntries   TimetableEntry[]
 
   // Peer links
   linksAsStudent  PeerLink[] @relation("StudentLinks")
@@ -159,6 +172,46 @@ model FinanceProfile {
   lastEditedAt    DateTime  @default(now())
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+// A recurring activity in the user's weekly timetable (FR5: time management).
+// Times are minutes-from-local-midnight; recurrence is a set of weekdays.
+model TimetableEntry {
+  id              String           @id @default(uuid())
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  title           String
+  category        ActivityCategory @default(other)
+  notes           String?
+  // Weekdays this repeats on: 0=Sunday … 6=Saturday. Non-empty.
+  daysOfWeek      Int[]
+  startMin        Int              // 0–1439, minutes from midnight (local)
+  endMin          Int              // > startMin, ≤ 1440
+  // Focus mode: while active, only allowedTargets stay enabled — everything else
+  // is blocked (FR5 isolation).
+  isolation       Boolean          @default(false)
+  reminderEnabled Boolean          @default(true)
+  // Lead time for the pre-activity reminder; at least 5 minutes.
+  reminderLeadMin Int              @default(5)
+  color           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  allowedTargets  TimetableAllowedTarget[]
+
+  @@index([userId])
+}
+
+// An app/website permitted during an isolation activity (whitelist).
+model TimetableAllowedTarget {
+  id        String           @id @default(uuid())
+  entry     TimetableEntry   @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId   String
+  appOrSite String
+  kind      ScreenTargetKind @default(url)
+  label     String?
+
+  @@index([entryId])
 }
 
 model SpendingLimit {

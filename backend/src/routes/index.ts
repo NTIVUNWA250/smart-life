@@ -8,6 +8,7 @@ import { screentimeRouter } from '../modules/screentime/screentime.controller.js
 import { peersRouter } from '../modules/peers/peers.controller.js';
 import { approvalsRouter } from '../modules/approvals/approvals.controller.js';
 import { analyticsRouter } from '../modules/analytics/analytics.controller.js';
+import { timetableRouter } from '../modules/timetable/timetable.controller.js';
 import { notificationsRouter } from '../modules/notifications/notifications.controller.js';
 import { adminRouter } from '../modules/admin/admin.controller.js';
 
@@ -22,5 +23,6 @@ apiRouter.use('/screentime', screentimeRouter);
 apiRouter.use('/peers', peersRouter);
 apiRouter.use('/approvals', approvalsRouter);
 apiRouter.use('/analytics', analyticsRouter);
+apiRouter.use('/timetable', timetableRouter);
 apiRouter.use('/notifications', notificationsRouter);
 apiRouter.use('/admin', adminRouter);

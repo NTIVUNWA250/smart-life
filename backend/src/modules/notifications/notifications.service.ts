@@ -1,5 +1,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { recomputeCurrentLimit } from '../limits/limits.service.js';
+import { buildAgenda } from '../timetable/timetable.service.js';
+import type { Clock } from '../timetable/timetable.schedule.js';
 
 export type NotificationType = 'approval' | 'denial' | 'reminder';
 
@@ -23,7 +25,7 @@ const KIND_LABEL: Record<string, string> = {
  *  - requests awaiting my decision as an approver (reminder)
  *  - money/goal reminders (blocked spending, deadlines, failed goals)
  */
-export async function buildFeed(userId: string): Promise<Notification[]> {
+export async function buildFeed(userId: string, clock?: Clock): Promise<Notification[]> {
   const [decidedForMe, pendingForMe, limit, goals] = await Promise.all([
     prisma.approval.findMany({
       where: { requesterId: userId, status: { in: ['approved', 'denied'] } },
@@ -85,6 +87,22 @@ export async function buildFeed(userId: string): Promise<Notification[]> {
         title: `Goal deadline near: ${g.title}`,
         body: `"${g.title}" is due ${g.deadline.toISOString().slice(0, 10)} and not yet funded.`,
         createdAt: g.updatedAt.toISOString(),
+      });
+    }
+  }
+
+  // Timetable: activities about to start (needs the client's local time).
+  if (clock) {
+    const { reminders } = await buildAgenda(userId, clock);
+    for (const r of reminders) {
+      items.push({
+        id: `timetable:${r.entry.id}:${r.entry.startMin}`,
+        type: 'reminder',
+        title: `Starting in ${r.startsInMin} min: ${r.entry.title}`,
+        body: r.entry.isolation
+          ? `${r.entry.title} is about to start — focus mode will keep only its allowed apps and sites enabled.`
+          : `${r.entry.title} is about to start.`,
+        createdAt: new Date().toISOString(),
       });
     }
   }
