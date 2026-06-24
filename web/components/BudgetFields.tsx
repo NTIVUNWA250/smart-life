@@ -23,9 +23,11 @@ export interface BudgetValue {
 }
 
 /**
- * Budget model dropdown + the three editable percentages (with an expected-
- * expenses amount that auto-calculates its %), a live RWF preview (including any
- * unexpected income), validation, and an optional "Suggest rates" action.
+ * The percentage track is primary: a budget-model dropdown, a ✨ Suggest action,
+ * and the three editable percentages (expected / unexpected / savings) with a live
+ * RWF preview. Below it, an optional expense **fit check** lets the user state
+ * their real expected expenses (in any cadence) to see whether they fit the
+ * budgeted ratios — it never rewrites the percentages unless they explicitly apply.
  */
 export function BudgetFields({
   value,
@@ -44,15 +46,18 @@ export function BudgetFields({
 }) {
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionMsg, setSuggestionMsg] = useState<string | null>(null);
+  // Local-only "what do my real expenses cost?" check — not part of the budget.
+  const [statedExpense, setStatedExpense] = useState('');
 
   const error = validateBudget(value);
   const effectiveIncome = monthlyIncomeRwf + extraIncomeRwf;
   const d = deriveBudget(effectiveIncome, 'monthly', value);
   const selectable = BUDGET_MODELS.filter((m) => m.selectable);
   const reference = BUDGET_MODELS.filter((m) => !m.selectable);
-  // Expected expenses shown in the user's chosen cadence (stored % is monthly).
-  const monthlyExpenses = Math.round((monthlyIncomeRwf * value.expectedPct) / 100);
-  const expectedAmount = fromMonthly(monthlyExpenses, value.expenseFrequency);
+  const budgetedExpenseAmount = fromMonthly(
+    Math.round((monthlyIncomeRwf * value.expectedPct) / 100),
+    value.expenseFrequency,
+  );
 
   function selectModel(id: string) {
     if (id === CUSTOM_MODEL_ID) {
@@ -72,13 +77,6 @@ export function BudgetFields({
 
   function setPct(key: 'expectedPct' | 'unexpectedPct' | 'savingsPct', n: number) {
     onChange({ ...value, budgetModel: CUSTOM_MODEL_ID, [key]: n });
-  }
-
-  function setExpectedFromAmount(amount: number) {
-    // Normalise the entered amount (in its cadence) to monthly, then to a %.
-    const monthly = toMonthly(amount, value.expenseFrequency);
-    const pct = monthlyIncomeRwf > 0 ? Math.round((monthly / monthlyIncomeRwf) * 100) : value.expectedPct;
-    setPct('expectedPct', Math.max(0, Math.min(100, pct)));
   }
 
   async function runSuggest() {
@@ -102,8 +100,35 @@ export function BudgetFields({
     }
   }
 
+  // —— expense fit check ——
+  const statedMonthly =
+    statedExpense !== '' ? toMonthly(Number(statedExpense), value.expenseFrequency) : null;
+  const statedPct =
+    statedMonthly != null && monthlyIncomeRwf > 0
+      ? Math.round((statedMonthly / monthlyIncomeRwf) * 100)
+      : null;
+  const totalExpensesPct = value.expectedPct + value.unexpectedPct;
+
+  let fit: { tone: 'success' | 'info' | 'warning'; msg: string } | null = null;
+  if (statedPct != null) {
+    if (statedPct <= value.expectedPct) {
+      fit = { tone: 'success', msg: `✓ ≈ ${statedPct}% of income — fits within your ${value.expectedPct}% expenses budget.` };
+    } else if (statedPct <= totalExpensesPct) {
+      fit = {
+        tone: 'info',
+        msg: `≈ ${statedPct}% — above planned ${value.expectedPct}%, but within total expenses ${totalExpensesPct}% (dips into your unexpected buffer).`,
+      };
+    } else {
+      fit = {
+        tone: 'warning',
+        msg: `⚠ ≈ ${statedPct}% — exceeds your ${totalExpensesPct}% total-expenses budget. Raise your expenses % or trim spending.`,
+      };
+    }
+  }
+
   return (
     <div className="space-y-3">
+      {/* ——— Percentage track (primary) ——— */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <Field label="Budget model">
@@ -134,31 +159,6 @@ export function BudgetFields({
       </div>
 
       {suggestionMsg && <Alert tone="info">{suggestionMsg}</Alert>}
-
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2">
-          <Field label="Expected expenses (auto-calculates %)">
-            <Input
-              type="number"
-              min={0}
-              disabled={disabled}
-              value={expectedAmount}
-              onChange={(e) => setExpectedFromAmount(Number(e.target.value))}
-            />
-          </Field>
-        </div>
-        <Field label="Per">
-          <Select
-            disabled={disabled}
-            value={value.expenseFrequency}
-            onChange={(e) => onChange({ ...value, expenseFrequency: e.target.value as Frequency })}
-          >
-            <option value="daily">Day</option>
-            <option value="monthly">Month</option>
-            <option value="yearly">Year</option>
-          </Select>
-        </Field>
-      </div>
 
       <div className="grid grid-cols-3 gap-3">
         <Field label="Expenses %">
@@ -204,6 +204,48 @@ export function BudgetFields({
         <Row label="Spendable / month" value={formatRwf(d.spendingAllowanceRwf)} strong />
         <Row label="Savings / month" value={formatRwf(d.savingsRwf)} accent />
         <Row label="Auto savings goal / year" value={formatRwf(d.autoGoalTargetRwf)} />
+      </div>
+
+      {/* ——— Expense fit check (secondary; doesn't change the budget) ——— */}
+      <div className="rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-700">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Check your real expenses
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
+            <Field label="Your expected expenses">
+              <Input
+                type="number"
+                min={0}
+                disabled={disabled}
+                placeholder={`e.g. ${budgetedExpenseAmount}`}
+                value={statedExpense}
+                onChange={(e) => setStatedExpense(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Field label="Per">
+            <Select
+              disabled={disabled}
+              value={value.expenseFrequency}
+              onChange={(e) => onChange({ ...value, expenseFrequency: e.target.value as Frequency })}
+            >
+              <option value="daily">Day</option>
+              <option value="monthly">Month</option>
+              <option value="yearly">Year</option>
+            </Select>
+          </Field>
+        </div>
+        {fit && (
+          <div className="mt-2 space-y-2">
+            <Alert tone={fit.tone}>{fit.msg}</Alert>
+            {statedPct != null && statedPct !== value.expectedPct && statedPct <= 70 && !disabled && (
+              <Button type="button" variant="secondary" onClick={() => setPct('expectedPct', statedPct)}>
+                Apply {statedPct}% as my expenses rate
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
