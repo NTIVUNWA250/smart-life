@@ -5,19 +5,23 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { errorMessage } from '@/lib/errors';
-import { formatRwf } from '@/lib/format';
 import type { Frequency } from '@/lib/types';
+import { findModel, toMonthly, DEFAULT_MODEL_ID } from '@/lib/budget';
 import { Alert, Button, Card, Field, Input, Select, Spinner } from '@/components/ui';
+import { BudgetFields, isBudgetValid, type BudgetValue } from '@/components/BudgetFields';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 type SignupRole = 'student' | 'approver';
 
-/** Mirrors backend finance.derive so onboarding can preview the auto goal. */
-function toMonthly(amount: number, freq: Frequency): number {
-  if (freq === 'daily') return Math.round(amount * 30);
-  if (freq === 'yearly') return Math.round(amount / 12);
-  return Math.round(amount);
-}
+const DEFAULT_BUDGET: BudgetValue = (() => {
+  const m = findModel(DEFAULT_MODEL_ID)!;
+  return {
+    budgetModel: m.id,
+    expectedPct: m.expectedPct,
+    unexpectedPct: m.unexpectedPct,
+    savingsPct: m.savingsPct,
+  };
+})();
 
 export default function SignupPage() {
   const { user, loading, signup } = useAuth();
@@ -30,12 +34,10 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<SignupRole>('student');
   const [isMinor, setIsMinor] = useState(false);
-  // Step 2 — finance (students only)
+  // Step 2 — budget (students only)
   const [income, setIncome] = useState('');
   const [incomeFrequency, setIncomeFrequency] = useState<Frequency>('monthly');
-  const [expenses, setExpenses] = useState('');
-  const [expenseFrequency, setExpenseFrequency] = useState<Frequency>('monthly');
-  const [savingsRatePct, setSavingsRatePct] = useState(50);
+  const [budget, setBudget] = useState<BudgetValue>(DEFAULT_BUDGET);
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -44,13 +46,10 @@ export default function SignupPage() {
     if (!loading && user) router.replace('/dashboard');
   }, [loading, user, router]);
 
-  const preview = useMemo(() => {
-    const monthlyIncome = toMonthly(Number(income) || 0, incomeFrequency);
-    const monthlyExpenses = toMonthly(Number(expenses) || 0, expenseFrequency);
-    const surplus = Math.max(0, monthlyIncome - monthlyExpenses);
-    const monthlySavings = Math.floor((surplus * savingsRatePct) / 100);
-    return { monthlyIncome, monthlyExpenses, surplus, monthlySavings };
-  }, [income, incomeFrequency, expenses, expenseFrequency, savingsRatePct]);
+  const monthlyIncome = useMemo(
+    () => toMonthly(Number(income) || 0, incomeFrequency),
+    [income, incomeFrequency],
+  );
 
   async function submit() {
     setError(null);
@@ -67,9 +66,10 @@ export default function SignupPage() {
             ? {
                 incomeRwf: Number(income),
                 incomeFrequency,
-                expensesRwf: Number(expenses) || 0,
-                expenseFrequency,
-                savingsRatePct,
+                budgetModel: budget.budgetModel,
+                expectedPct: budget.expectedPct,
+                unexpectedPct: budget.unexpectedPct,
+                savingsPct: budget.savingsPct,
               }
             : undefined,
       });
@@ -84,7 +84,6 @@ export default function SignupPage() {
   function onAccountNext(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    // Approvers don't have a savings plan — submit straight away.
     if (role === 'approver') {
       void submit();
     } else {
@@ -100,6 +99,8 @@ export default function SignupPage() {
     );
   }
 
+  const budgetOk = isBudgetValid(budget);
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="absolute right-4 top-4">
@@ -109,7 +110,7 @@ export default function SignupPage() {
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300">SMART LIFE</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {step === 1 ? 'Create your account.' : 'Set up your savings plan.'}
+            {step === 1 ? 'Create your account.' : 'Set up your monthly budget.'}
           </p>
         </div>
 
@@ -159,7 +160,7 @@ export default function SignupPage() {
                   ? submitting
                     ? 'Creating account…'
                     : 'Create account'
-                  : 'Next: savings plan →'}
+                  : 'Next: budget →'}
               </Button>
             </form>
             <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
@@ -170,7 +171,7 @@ export default function SignupPage() {
             </p>
           </Card>
         ) : (
-          <Card title="Your income & expenses">
+          <Card title="Your monthly budget">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -180,12 +181,13 @@ export default function SignupPage() {
             >
               {error && <Alert tone="error">{error}</Alert>}
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                We use this to auto-calculate a savings goal. You can edit it later — once a month.
+                Pick a budget model (or customise). Savings must stay at or above 30%. You can edit
+                this once a month.
               </p>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <Field label="Income">
+                  <Field label="Full income">
                     <Input
                       type="number"
                       min={0}
@@ -207,59 +209,13 @@ export default function SignupPage() {
                 </Field>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
-                  <Field label="Expected expenses">
-                    <Input
-                      type="number"
-                      min={0}
-                      value={expenses}
-                      onChange={(e) => setExpenses(e.target.value)}
-                    />
-                  </Field>
-                </div>
-                <Field label="Per">
-                  <Select
-                    value={expenseFrequency}
-                    onChange={(e) => setExpenseFrequency(e.target.value as Frequency)}
-                  >
-                    <option value="daily">Day</option>
-                    <option value="monthly">Month</option>
-                    <option value="yearly">Year</option>
-                  </Select>
-                </Field>
-              </div>
-
-              <Field label={`Save ${savingsRatePct}% of your monthly surplus`}>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={savingsRatePct}
-                  onChange={(e) => setSavingsRatePct(Number(e.target.value))}
-                  className="w-full accent-brand-500"
-                />
-              </Field>
-
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/50">
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">Monthly surplus</span>
-                  <span className="font-medium">{formatRwf(preview.surplus)}</span>
-                </div>
-                <div className="mt-1 flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">Auto savings / month</span>
-                  <span className="font-semibold text-brand-700 dark:text-brand-300">
-                    {formatRwf(preview.monthlySavings)}
-                  </span>
-                </div>
-              </div>
+              <BudgetFields value={budget} onChange={setBudget} monthlyIncomeRwf={monthlyIncome} />
 
               <div className="flex gap-3">
                 <Button type="button" variant="secondary" onClick={() => setStep(1)} disabled={submitting}>
                   ← Back
                 </Button>
-                <Button type="submit" disabled={submitting} className="flex-1">
+                <Button type="submit" disabled={submitting || !budgetOk} className="flex-1">
                   {submitting ? 'Creating account…' : 'Create account'}
                 </Button>
               </div>

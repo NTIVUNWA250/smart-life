@@ -1,13 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AppShell } from '@/components/AppShell';
 import { Alert, Badge, Button, Card, Field, Input, Select, Spinner } from '@/components/ui';
+import { BudgetFields, isBudgetValid, type BudgetValue } from '@/components/BudgetFields';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { formatDate, formatRwf } from '@/lib/format';
+import { findModel, toMonthly, DEFAULT_MODEL_ID } from '@/lib/budget';
 import type { Frequency, FinanceResponse, Goal } from '@/lib/types';
+
+const DEFAULT_BUDGET: BudgetValue = (() => {
+  const m = findModel(DEFAULT_MODEL_ID)!;
+  return { budgetModel: m.id, expectedPct: m.expectedPct, unexpectedPct: m.unexpectedPct, savingsPct: m.savingsPct };
+})();
 
 export default function SettingsPage() {
   return (
@@ -18,7 +25,7 @@ export default function SettingsPage() {
           <ProfileSection />
           <PasswordSection />
         </div>
-        <SavingsPlanSection />
+        <BudgetSection />
         <GoalsSection />
       </div>
     </AppShell>
@@ -124,19 +131,11 @@ function PasswordSection() {
   );
 }
 
-const FREQ: { value: Frequency; label: string }[] = [
-  { value: 'daily', label: 'Day' },
-  { value: 'monthly', label: 'Month' },
-  { value: 'yearly', label: 'Year' },
-];
-
-function SavingsPlanSection() {
+function BudgetSection() {
   const [data, setData] = useState<FinanceResponse | null>(null);
   const [income, setIncome] = useState('');
   const [incomeFrequency, setIncomeFrequency] = useState<Frequency>('monthly');
-  const [expenses, setExpenses] = useState('');
-  const [expenseFrequency, setExpenseFrequency] = useState<Frequency>('monthly');
-  const [savingsRatePct, setSavingsRatePct] = useState(50);
+  const [budget, setBudget] = useState<BudgetValue>(DEFAULT_BUDGET);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -149,9 +148,12 @@ function SavingsPlanSection() {
       if (res.profile) {
         setIncome(String(res.profile.incomeRwf));
         setIncomeFrequency(res.profile.incomeFrequency);
-        setExpenses(String(res.profile.expensesRwf));
-        setExpenseFrequency(res.profile.expenseFrequency);
-        setSavingsRatePct(res.profile.savingsRatePct);
+        setBudget({
+          budgetModel: res.profile.budgetModel,
+          expectedPct: res.profile.expectedPct,
+          unexpectedPct: res.profile.unexpectedPct,
+          savingsPct: res.profile.savingsPct,
+        });
       }
     } catch (e) {
       setErr(errorMessage(e));
@@ -164,6 +166,11 @@ function SavingsPlanSection() {
     void load();
   }, [load]);
 
+  const monthlyIncome = useMemo(
+    () => toMonthly(Number(income) || 0, incomeFrequency),
+    [income, incomeFrequency],
+  );
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     setMsg(null);
@@ -173,12 +180,13 @@ function SavingsPlanSection() {
       const res = await api.finance.save({
         incomeRwf: Number(income),
         incomeFrequency,
-        expensesRwf: Number(expenses) || 0,
-        expenseFrequency,
-        savingsRatePct,
+        budgetModel: budget.budgetModel,
+        expectedPct: budget.expectedPct,
+        unexpectedPct: budget.unexpectedPct,
+        savingsPct: budget.savingsPct,
       });
       setData(res);
-      setMsg('Savings plan saved. Your spending limit and auto goal were updated.');
+      setMsg('Budget saved. Your spending limit and auto goal were updated.');
     } catch (e2) {
       setErr(errorMessage(e2));
     } finally {
@@ -186,113 +194,68 @@ function SavingsPlanSection() {
     }
   }
 
-  if (loading) return <Card title="Savings plan & limit"><Spinner /></Card>;
+  if (loading) {
+    return (
+      <Card title="Budget & spending limit">
+        <Spinner />
+      </Card>
+    );
+  }
 
   const canEdit = data?.canEditNow ?? true;
 
   return (
-    <Card title="Savings plan & limit">
+    <Card title="Budget & spending limit">
       <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-        Your income and expenses drive the auto-calculated savings goal and your monthly spending
-        limit. Editable once a month.
+        Your income and budget model set the auto savings goal and your monthly spending limit
+        (income − the savings you reserve). Savings stays ≥ 30%. Editable once a month.
       </p>
-      {data?.derived && (
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="Monthly income" value={formatRwf(data.derived.monthlyIncomeRwf)} />
-          <Stat label="Monthly expenses" value={formatRwf(data.derived.monthlyExpensesRwf)} />
-          <Stat label="Surplus" value={formatRwf(data.derived.monthlySurplusRwf)} />
-          <Stat label="Auto savings / mo" value={formatRwf(data.derived.monthlySavingsRwf)} />
-        </div>
-      )}
       <form onSubmit={submit} className="space-y-3">
         {err && <Alert tone="error">{err}</Alert>}
         {msg && <Alert tone="success">{msg}</Alert>}
         {!canEdit && (
           <Alert tone="warning">
-            You already edited your plan this month. You can change it again next month.
+            You already edited your budget this month. You can change it again next month.
           </Alert>
         )}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid grid-cols-3 gap-2">
-            <div className="col-span-2">
-              <Field label="Income">
-                <Input
-                  type="number"
-                  min={0}
-                  required
-                  disabled={!canEdit}
-                  value={income}
-                  onChange={(e) => setIncome(e.target.value)}
-                />
-              </Field>
-            </div>
-            <Field label="Per">
-              <Select
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
+            <Field label="Full income">
+              <Input
+                type="number"
+                min={0}
+                required
                 disabled={!canEdit}
-                value={incomeFrequency}
-                onChange={(e) => setIncomeFrequency(e.target.value as Frequency)}
-              >
-                {FREQ.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </Select>
+                value={income}
+                onChange={(e) => setIncome(e.target.value)}
+              />
             </Field>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="col-span-2">
-              <Field label="Expenses">
-                <Input
-                  type="number"
-                  min={0}
-                  disabled={!canEdit}
-                  value={expenses}
-                  onChange={(e) => setExpenses(e.target.value)}
-                />
-              </Field>
-            </div>
-            <Field label="Per">
-              <Select
-                disabled={!canEdit}
-                value={expenseFrequency}
-                onChange={(e) => setExpenseFrequency(e.target.value as Frequency)}
-              >
-                {FREQ.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
+          <Field label="Per">
+            <Select
+              disabled={!canEdit}
+              value={incomeFrequency}
+              onChange={(e) => setIncomeFrequency(e.target.value as Frequency)}
+            >
+              <option value="daily">Day</option>
+              <option value="monthly">Month</option>
+              <option value="yearly">Year</option>
+            </Select>
+          </Field>
         </div>
-        <Field label={`Save ${savingsRatePct}% of monthly surplus`}>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            disabled={!canEdit}
-            value={savingsRatePct}
-            onChange={(e) => setSavingsRatePct(Number(e.target.value))}
-            className="w-full accent-brand-500"
-          />
-        </Field>
-        <Button type="submit" disabled={busy || !canEdit}>
-          {busy ? 'Saving…' : 'Save plan'}
+
+        <BudgetFields
+          value={budget}
+          onChange={setBudget}
+          monthlyIncomeRwf={monthlyIncome}
+          disabled={!canEdit}
+        />
+
+        <Button type="submit" disabled={busy || !canEdit || !isBudgetValid(budget)}>
+          {busy ? 'Saving…' : 'Save budget'}
         </Button>
       </form>
     </Card>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
-      <div className="text-xs text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-slate-100">{value}</div>
-    </div>
   );
 }
 
@@ -316,7 +279,12 @@ function GoalsSection() {
     void load();
   }, [load]);
 
-  if (loading) return <Card title="Goals"><Spinner /></Card>;
+  if (loading)
+    return (
+      <Card title="Goals">
+        <Spinner />
+      </Card>
+    );
 
   return (
     <Card title="Goals">
@@ -349,7 +317,8 @@ function GoalEditRow({ goal, onDone }: { goal: Goal; onDone: () => Promise<void>
   const [busy, setBusy] = useState(false);
 
   const editedThisMonth =
-    goal.lastEditedAt && new Date(goal.lastEditedAt).getUTCMonth() === new Date().getUTCMonth() &&
+    goal.lastEditedAt &&
+    new Date(goal.lastEditedAt).getUTCMonth() === new Date().getUTCMonth() &&
     new Date(goal.lastEditedAt).getUTCFullYear() === new Date().getUTCFullYear();
 
   async function submit(e: FormEvent) {
@@ -362,9 +331,7 @@ function GoalEditRow({ goal, onDone }: { goal: Goal; onDone: () => Promise<void>
         title: title !== goal.title ? title : undefined,
         targetRwf: Number(target) !== goal.targetRwf ? Number(target) : undefined,
         deadline:
-          deadline !== goal.deadline.slice(0, 10)
-            ? new Date(deadline).toISOString()
-            : undefined,
+          deadline !== goal.deadline.slice(0, 10) ? new Date(deadline).toISOString() : undefined,
         reason: reason || undefined,
       });
       setMsg('Edit requested — awaiting approval.');
@@ -391,13 +358,15 @@ function GoalEditRow({ goal, onDone }: { goal: Goal; onDone: () => Promise<void>
           {open ? 'Cancel' : 'Request edit'}
         </Button>
       </div>
-      {msg && <div className="mt-2"><Alert tone="success">{msg}</Alert></div>}
+      {msg && (
+        <div className="mt-2">
+          <Alert tone="success">{msg}</Alert>
+        </div>
+      )}
       {open && (
         <form onSubmit={submit} className="mt-3 space-y-3">
           {err && <Alert tone="error">{err}</Alert>}
-          {editedThisMonth && (
-            <Alert tone="warning">This goal was already edited this month.</Alert>
-          )}
+          {editedThisMonth && <Alert tone="warning">This goal was already edited this month.</Alert>}
           <Field label="Title">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>

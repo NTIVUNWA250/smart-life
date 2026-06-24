@@ -63,32 +63,46 @@ export interface FinanceProfile {
   userId: string;
   incomeRwf: number;
   incomeFrequency: Frequency;
-  expensesRwf: number;
-  expenseFrequency: Frequency;
-  savingsRatePct: number;
+  budgetModel: string;
+  expectedPct: number;
+  unexpectedPct: number;
+  savingsPct: number;
   lastEditedAt: string;
 }
 
 export interface FinanceDerived {
   monthlyIncomeRwf: number;
-  monthlyExpensesRwf: number;
-  monthlySurplusRwf: number;
-  monthlySavingsRwf: number;
+  expectedExpensesRwf: number;
+  unexpectedRwf: number;
+  savingsRwf: number;
+  spendingAllowanceRwf: number;
   autoGoalTargetRwf: number;
+}
+
+export interface BudgetModelOption {
+  id: string;
+  name: string;
+  description: string;
+  expectedPct: number;
+  unexpectedPct: number;
+  savingsPct: number;
+  selectable: boolean;
 }
 
 export interface FinanceResponse {
   profile: FinanceProfile | null;
   derived: FinanceDerived | null;
   canEditNow: boolean;
+  models: BudgetModelOption[];
 }
 
 export interface FinanceInput {
   incomeRwf: number;
   incomeFrequency: Frequency;
-  expensesRwf: number;
-  expenseFrequency: Frequency;
-  savingsRatePct?: number;
+  budgetModel: string;
+  expectedPct: number;
+  unexpectedPct: number;
+  savingsPct: number;
 }
 
 export interface ScreenTimePolicy {
