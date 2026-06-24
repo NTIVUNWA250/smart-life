@@ -3,6 +3,8 @@ import {
   BUDGET_MODELS,
   derive,
   findModel,
+  progressiveSavingsBasePct,
+  suggestBudget,
   validateAllocation,
 } from '../finance.budget.js';
 
@@ -33,12 +35,16 @@ describe('validateAllocation', () => {
     expect(() => validateAllocation({ expectedPct: 60, unexpectedPct: 10, savingsPct: 20 })).toThrow();
   });
 
-  it('rejects unexpected expenses above 10%', () => {
-    expect(() => validateAllocation({ expectedPct: 55, unexpectedPct: 15, savingsPct: 30 })).toThrow();
+  it('allows any unexpected rate while total expenses stay ≤ 70%', () => {
+    expect(() => validateAllocation({ expectedPct: 40, unexpectedPct: 30, savingsPct: 30 })).not.toThrow();
+  });
+
+  it('rejects total expenses above 70%', () => {
+    expect(() => validateAllocation({ expectedPct: 65, unexpectedPct: 15, savingsPct: 20 })).toThrow();
   });
 
   it('rejects savings below 30%', () => {
-    expect(() => validateAllocation({ expectedPct: 70, unexpectedPct: 10, savingsPct: 20 })).toThrow();
+    expect(() => validateAllocation({ expectedPct: 50, unexpectedPct: 25, savingsPct: 25 })).toThrow();
   });
 
   it('ignores extra fields when a superset (full input) is passed', () => {
@@ -82,5 +88,53 @@ describe('derive', () => {
     });
     expect(d.monthlyIncomeRwf).toBe(100_000);
     expect(d.savingsRwf).toBe(30_000);
+  });
+});
+
+describe('progressiveSavingsBasePct', () => {
+  it('rises with income', () => {
+    expect(progressiveSavingsBasePct(50_000)).toBe(30);
+    expect(progressiveSavingsBasePct(200_000)).toBe(35);
+    expect(progressiveSavingsBasePct(500_000)).toBe(40);
+    expect(progressiveSavingsBasePct(1_000_000)).toBe(45);
+    expect(progressiveSavingsBasePct(2_000_000)).toBe(50);
+  });
+});
+
+describe('suggestBudget', () => {
+  it('uses the income-progressive floor when goals are modest', () => {
+    const s = suggestBudget({
+      monthlyIncomeRwf: 500_000,
+      expectedPct: 50,
+      goalRemainingRwf: 100_000,
+      goalRequiredPerMonthRwf: 20_000, // 4% of income
+    });
+    expect(s.savingsPct).toBe(40); // progressive floor for 500k dominates
+    expect(s.expectedPct + s.unexpectedPct + s.savingsPct).toBe(100);
+    expect(s.meetsGoalDeadlines).toBe(true);
+    expect(s.monthsToReachGoals).toBe(1); // 100k / 200k saved per month
+  });
+
+  it('raises savings to meet demanding goals, capped by expenses', () => {
+    const s = suggestBudget({
+      monthlyIncomeRwf: 200_000,
+      expectedPct: 40,
+      goalRemainingRwf: 600_000,
+      goalRequiredPerMonthRwf: 110_000, // 55% of income
+    });
+    expect(s.savingsPct).toBe(55); // lifted to the goal requirement
+    expect(s.unexpectedPct).toBe(5); // 100 - 40 - 55
+  });
+
+  it('flags when expenses leave too little to meet goal deadlines', () => {
+    const s = suggestBudget({
+      monthlyIncomeRwf: 100_000,
+      expectedPct: 70,
+      goalRemainingRwf: 600_000,
+      goalRequiredPerMonthRwf: 50_000, // 50% needed but only 30% available
+    });
+    expect(s.savingsPct).toBe(30); // capped: 100 - 70
+    expect(s.meetsGoalDeadlines).toBe(false);
+    expect(s.monthsToReachGoals).toBe(20); // 600k / 30k
   });
 });

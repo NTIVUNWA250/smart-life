@@ -167,6 +167,8 @@ model SpendingLimit {
   periodEnd   DateTime
   limitRwf    Int
   spentRwf    Int      @default(0)
+  // Ad-hoc income received this month; boosts the effective income (and savings).
+  unexpectedIncomeRwf Int @default(0)
   isBlocked   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

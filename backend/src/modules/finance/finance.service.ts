@@ -1,11 +1,18 @@
 import type { FinanceProfile } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import type { Frequency } from '../../lib/money.js';
-import { isSameUtcMonth, addUtcMonths } from '../../lib/period.js';
+import { toMonthlyRwf, type Frequency } from '../../lib/money.js';
+import { isSameUtcMonth, addUtcMonths, monthsUntil } from '../../lib/period.js';
 import { recomputeCurrentLimit } from '../limits/limits.service.js';
 import { audit } from '../../lib/audit.js';
 import { badRequest, conflict } from '../../lib/http-error.js';
-import { derive, findModel, validateAllocation, DEFAULT_MODEL_ID } from './finance.budget.js';
+import {
+  derive,
+  findModel,
+  validateAllocation,
+  suggestBudget,
+  DEFAULT_MODEL_ID,
+  type BudgetSuggestion,
+} from './finance.budget.js';
 
 export interface FinanceInput {
   incomeRwf: number;
@@ -95,4 +102,35 @@ export async function updateProfile(userId: string, raw: FinanceInput): Promise<
 
 export async function getProfile(userId: string): Promise<FinanceProfile | null> {
   return prisma.financeProfile.findUnique({ where: { userId } });
+}
+
+export interface SuggestRequest {
+  incomeRwf: number;
+  incomeFrequency: Frequency;
+  /** Either an explicit expected-expense percentage… */
+  expectedPct?: number;
+  /** …or a RWF amount, from which the percentage is auto-calculated. */
+  expectedExpensesRwf?: number;
+}
+
+/**
+ * Suggests a savings rate + split and the time to reach goals, based on the
+ * user's active goals, the given income and their stated expected expenses.
+ */
+export async function suggest(userId: string, input: SuggestRequest): Promise<BudgetSuggestion> {
+  const monthlyIncomeRwf = toMonthlyRwf(input.incomeRwf, input.incomeFrequency);
+
+  let expectedPct = input.expectedPct ?? 60;
+  if (input.expectedPct === undefined && input.expectedExpensesRwf !== undefined && monthlyIncomeRwf > 0) {
+    expectedPct = Math.round((input.expectedExpensesRwf / monthlyIncomeRwf) * 100);
+  }
+
+  const goals = await prisma.goal.findMany({ where: { userId, status: 'active' } });
+  const goalRemainingRwf = goals.reduce((s, g) => s + Math.max(0, g.targetRwf - g.savedRwf), 0);
+  const goalRequiredPerMonthRwf = goals.reduce((s, g) => {
+    const remaining = Math.max(0, g.targetRwf - g.savedRwf);
+    return s + Math.ceil(remaining / monthsUntil(g.deadline));
+  }, 0);
+
+  return suggestBudget({ monthlyIncomeRwf, expectedPct, goalRemainingRwf, goalRequiredPerMonthRwf });
 }

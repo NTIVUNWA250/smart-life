@@ -41,6 +41,23 @@ financeRouter.get(
   }),
 );
 
+const suggestSchema = z
+  .object({
+    incomeRwf: z.number().int().nonnegative(),
+    incomeFrequency: z.enum(['daily', 'monthly', 'yearly']),
+    expectedPct: z.number().int().min(0).max(100).optional(),
+    expectedExpensesRwf: z.number().int().nonnegative().optional(),
+  });
+
+// Suggests a savings rate + split and time-to-goal from income, expenses & goals.
+financeRouter.post(
+  '/suggest',
+  asyncHandler(async (req, res) => {
+    const input = suggestSchema.parse(req.body);
+    res.json({ suggestion: await finance.suggest(req.user!.id, input) });
+  }),
+);
+
 financeRouter.put(
   '/',
   asyncHandler(async (req, res) => {

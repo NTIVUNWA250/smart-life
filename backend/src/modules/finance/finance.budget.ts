@@ -1,10 +1,11 @@
 import { badRequest } from '../../lib/http-error.js';
 import { toMonthlyRwf, type Frequency } from '../../lib/money.js';
 
-/** Hard guardrails (SRS FR3): savings can never fall below 30% of income, and the
- *  unexpected-expense buffer can never exceed 10%. */
+/** Hard guardrails (SRS FR3): savings can never fall below 30% of income, so total
+ *  expenses (expected + unexpected) can never exceed 70%. The split between expected
+ *  and unexpected expenses is otherwise free. */
 export const SAVINGS_FLOOR_PCT = 30;
-export const MAX_UNEXPECTED_PCT = 10;
+export const MAX_EXPENSES_PCT = 70;
 
 export interface BudgetModel {
   id: string;
@@ -125,8 +126,8 @@ export function validateAllocation(a: Allocation): void {
   if (a.expectedPct + a.unexpectedPct + a.savingsPct !== 100) {
     throw badRequest('Expected, unexpected and savings percentages must total 100%');
   }
-  if (a.unexpectedPct > MAX_UNEXPECTED_PCT) {
-    throw badRequest(`Unexpected expenses can be at most ${MAX_UNEXPECTED_PCT}% of income`);
+  if (a.expectedPct + a.unexpectedPct > MAX_EXPENSES_PCT) {
+    throw badRequest(`Total expenses can be at most ${MAX_EXPENSES_PCT}% of income`);
   }
   if (a.savingsPct < SAVINGS_FLOOR_PCT) {
     throw badRequest(`Savings must be at least ${SAVINGS_FLOOR_PCT}% of income`);
@@ -165,5 +166,87 @@ export function derive(p: FinanceLike): FinanceDerived {
     savingsRwf,
     spendingAllowanceRwf: expectedExpensesRwf + unexpectedRwf,
     autoGoalTargetRwf: savingsRwf * 12,
+  };
+}
+
+/**
+ * Base savings rate that rises with income, so higher earners save more. Monthly
+ * income in RWF → suggested floor savings %. Tiers are deliberate, not smooth, so
+ * the suggestion is easy to explain.
+ */
+export function progressiveSavingsBasePct(monthlyIncomeRwf: number): number {
+  if (monthlyIncomeRwf < 100_000) return 30;
+  if (monthlyIncomeRwf < 300_000) return 35;
+  if (monthlyIncomeRwf < 700_000) return 40;
+  if (monthlyIncomeRwf < 1_500_000) return 45;
+  return 50;
+}
+
+export interface SuggestInput {
+  monthlyIncomeRwf: number;
+  expectedPct: number;
+  /** Total still needed across active goals (Σ target − saved). */
+  goalRemainingRwf: number;
+  /** Monthly RWF goals require to hit every deadline (Σ ceil(remaining / monthsLeft)). */
+  goalRequiredPerMonthRwf: number;
+}
+
+export interface BudgetSuggestion {
+  expectedPct: number;
+  unexpectedPct: number;
+  savingsPct: number;
+  monthlySavingsRwf: number;
+  /** Months to fully fund all goals at the suggested savings rate (0 if none). */
+  monthsToReachGoals: number;
+  /** True when the suggested savings cover the goals' required monthly amount. */
+  meetsGoalDeadlines: boolean;
+  rationale: string;
+}
+
+/**
+ * Suggests a savings rate (and expected/unexpected split) from income, stated
+ * expenses and goals. The rate is the highest of: the income-progressive floor,
+ * the 30% hard floor, and what the goals require — capped so expenses are covered.
+ */
+export function suggestBudget(input: SuggestInput): BudgetSuggestion {
+  const income = Math.max(0, input.monthlyIncomeRwf);
+  const expectedPct = Math.min(MAX_EXPENSES_PCT, Math.max(0, Math.round(input.expectedPct)));
+
+  // Multiply before dividing to avoid float artifacts (e.g. 0.55*100 = 55.0000001).
+  const goalReqPct = income > 0 ? Math.ceil((input.goalRequiredPerMonthRwf * 100) / income) : 0;
+  const progressivePct = progressiveSavingsBasePct(income);
+
+  // Savings can use everything not claimed by expected expenses.
+  const maxSavingsPct = 100 - expectedPct;
+  const savingsPct = Math.min(
+    maxSavingsPct,
+    Math.max(SAVINGS_FLOOR_PCT, progressivePct, goalReqPct),
+  );
+  const unexpectedPct = Math.max(0, 100 - expectedPct - savingsPct);
+
+  const monthlySavingsRwf = Math.round((income * savingsPct) / 100);
+  const monthsToReachGoals =
+    input.goalRemainingRwf > 0 && monthlySavingsRwf > 0
+      ? Math.ceil(input.goalRemainingRwf / monthlySavingsRwf)
+      : 0;
+  const meetsGoalDeadlines = savingsPct >= goalReqPct;
+
+  let rationale: string;
+  if (input.goalRemainingRwf <= 0) {
+    rationale = `No active goals — saving ${savingsPct}% builds your buffer; this rate rises as your income grows.`;
+  } else if (meetsGoalDeadlines) {
+    rationale = `Saving ${savingsPct}% funds your goals in ~${monthsToReachGoals} month(s) and meets their deadlines.`;
+  } else {
+    rationale = `Your goals need ${goalReqPct}% to hit every deadline, but expenses only leave ${maxSavingsPct}%. Saving ${savingsPct}% reaches them in ~${monthsToReachGoals} month(s); cut expenses or extend deadlines to go faster.`;
+  }
+
+  return {
+    expectedPct,
+    unexpectedPct,
+    savingsPct,
+    monthlySavingsRwf,
+    monthsToReachGoals,
+    meetsGoalDeadlines,
+    rationale,
   };
 }

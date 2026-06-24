@@ -32,4 +32,15 @@ limitsRouter.post(
   }),
 );
 
+const unexpectedIncomeSchema = z.object({ amountRwf: z.number().int().nonnegative() });
+
+// Record ad-hoc income received this month; lifts the spendable limit and savings.
+limitsRouter.put(
+  '/unexpected-income',
+  asyncHandler(async (req, res) => {
+    const { amountRwf } = unexpectedIncomeSchema.parse(req.body);
+    res.json({ limit: await limits.setUnexpectedIncome(req.user!.id, amountRwf) });
+  }),
+);
+
 export { limits };

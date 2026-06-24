@@ -28,13 +28,21 @@ async function requiredGoalSavingsRwf(userId: string): Promise<number> {
  * Without a profile it falls back to actual income(this month) − requiredSavings.
  * When spend reaches the limit, all payment channels are blocked (FR4).
  */
-async function computeLimitRwf(userId: string, periodStart: Date, periodEnd: Date): Promise<number> {
+async function computeLimitRwf(
+  userId: string,
+  periodStart: Date,
+  periodEnd: Date,
+  extraIncomeRwf = 0,
+): Promise<number> {
   const requiredSavings = await requiredGoalSavingsRwf(userId);
   const profile = await prisma.financeProfile.findUnique({ where: { userId } });
 
   if (profile) {
-    const { monthlyIncomeRwf, savingsRwf } = derive(profile);
-    const reserved = Math.max(savingsRwf, requiredSavings);
+    // Unexpected income for the month lifts both the effective income and the
+    // savings bucket (savings% of the larger income), so users save more.
+    const monthlyIncomeRwf = derive(profile).monthlyIncomeRwf + extraIncomeRwf;
+    const savingsBucket = Math.round((monthlyIncomeRwf * profile.savingsPct) / 100);
+    const reserved = Math.max(savingsBucket, requiredSavings);
     return Math.max(0, monthlyIncomeRwf - reserved);
   }
 
@@ -43,7 +51,7 @@ async function computeLimitRwf(userId: string, periodStart: Date, periodEnd: Dat
     _sum: { amountRwf: true },
     where: { userId, type: 'income', occurredAt: { gte: periodStart, lt: periodEnd } },
   });
-  const incomeTotal = income._sum.amountRwf ?? 0;
+  const incomeTotal = (income._sum.amountRwf ?? 0) + extraIncomeRwf;
   return Math.max(0, incomeTotal - requiredSavings);
 }
 
@@ -58,12 +66,14 @@ async function computeSpentRwf(userId: string, periodStart: Date, periodEnd: Dat
 /** Recomputes the current-period limit, persists it, and enforces blocking. */
 export async function recomputeCurrentLimit(userId: string): Promise<SpendingLimit> {
   const { start, end } = currentMonthPeriod();
-  const limitRwf = await computeLimitRwf(userId, start, end);
-  const spentRwf = await computeSpentRwf(userId, start, end);
 
   const existing = await prisma.spendingLimit.findFirst({
     where: { userId, periodStart: start },
   });
+  const extraIncomeRwf = existing?.unexpectedIncomeRwf ?? 0;
+
+  const limitRwf = await computeLimitRwf(userId, start, end, extraIncomeRwf);
+  const spentRwf = await computeSpentRwf(userId, start, end);
 
   // Don't auto-unblock if an admin/over-limit block is in force and still over limit.
   const overLimit = spentRwf >= limitRwf && limitRwf >= 0;
@@ -81,6 +91,7 @@ export async function recomputeCurrentLimit(userId: string): Promise<SpendingLim
   const limit = existing
     ? await prisma.spendingLimit.update({
         where: { id: existing.id },
+        // unexpectedIncomeRwf is intentionally preserved (set via setUnexpectedIncome).
         data: { limitRwf, spentRwf, periodEnd: end, isBlocked: shouldBlock },
       })
     : await prisma.spendingLimit.create({
@@ -89,6 +100,18 @@ export async function recomputeCurrentLimit(userId: string): Promise<SpendingLim
 
   await enforce(userId, shouldBlock);
   return limit;
+}
+
+/** Sets (or clears) ad-hoc income for the current month, then recomputes. */
+export async function setUnexpectedIncome(userId: string, amountRwf: number): Promise<SpendingLimit> {
+  const { start } = currentMonthPeriod();
+  // Ensure a row exists for the period, then store the amount and recompute.
+  await recomputeCurrentLimit(userId);
+  await prisma.spendingLimit.updateMany({
+    where: { userId, periodStart: start },
+    data: { unexpectedIncomeRwf: Math.max(0, Math.round(amountRwf)) },
+  });
+  return recomputeCurrentLimit(userId);
 }
 
 async function enforce(userId: string, blocked: boolean): Promise<void> {
