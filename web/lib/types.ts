@@ -78,6 +78,7 @@ export interface FinanceProfile {
   expectedPct: number;
   unexpectedPct: number;
   savingsPct: number;
+  expenseFrequency: Frequency;
   lastEditedAt: string;
 }
 
@@ -114,6 +115,7 @@ export interface FinanceInput {
   expectedPct: number;
   unexpectedPct: number;
   savingsPct: number;
+  expenseFrequency?: Frequency;
 }
 
 export interface ScreenTimePolicy {

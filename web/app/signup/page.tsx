@@ -20,6 +20,7 @@ const DEFAULT_BUDGET: BudgetValue = (() => {
     expectedPct: m.expectedPct,
     unexpectedPct: m.unexpectedPct,
     savingsPct: m.savingsPct,
+    expenseFrequency: 'monthly',
   };
 })();
 
@@ -70,6 +71,7 @@ export default function SignupPage() {
                 expectedPct: budget.expectedPct,
                 unexpectedPct: budget.unexpectedPct,
                 savingsPct: budget.savingsPct,
+                expenseFrequency: budget.expenseFrequency,
               }
             : undefined,
       });

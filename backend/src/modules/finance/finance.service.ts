@@ -21,6 +21,7 @@ export interface FinanceInput {
   expectedPct: number;
   unexpectedPct: number;
   savingsPct: number;
+  expenseFrequency?: Frequency;
 }
 
 /** The auto goal spans a year so the monthly required-savings maths is stable. */
@@ -64,6 +65,7 @@ function toData(input: FinanceInput) {
     expectedPct: input.expectedPct,
     unexpectedPct: input.unexpectedPct,
     savingsPct: input.savingsPct,
+    expenseFrequency: input.expenseFrequency ?? 'monthly',
   };
 }
 

@@ -13,7 +13,13 @@ import type { Frequency, FinanceResponse, Goal } from '@/lib/types';
 
 const DEFAULT_BUDGET: BudgetValue = (() => {
   const m = findModel(DEFAULT_MODEL_ID)!;
-  return { budgetModel: m.id, expectedPct: m.expectedPct, unexpectedPct: m.unexpectedPct, savingsPct: m.savingsPct };
+  return {
+    budgetModel: m.id,
+    expectedPct: m.expectedPct,
+    unexpectedPct: m.unexpectedPct,
+    savingsPct: m.savingsPct,
+    expenseFrequency: 'monthly',
+  };
 })();
 
 export default function SettingsPage() {
@@ -156,6 +162,7 @@ function BudgetSection() {
           expectedPct: res.profile.expectedPct,
           unexpectedPct: res.profile.unexpectedPct,
           savingsPct: res.profile.savingsPct,
+          expenseFrequency: res.profile.expenseFrequency,
         });
       }
     } catch (e) {
@@ -200,6 +207,7 @@ function BudgetSection() {
         expectedPct: budget.expectedPct,
         unexpectedPct: budget.unexpectedPct,
         savingsPct: budget.savingsPct,
+        expenseFrequency: budget.expenseFrequency,
       });
       setData(res);
       setMsg('Budget saved. Your spending limit and auto goal were updated.');

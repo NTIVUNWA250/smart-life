@@ -16,6 +16,7 @@ export const financeSchema = z.object({
   expectedPct: z.number().int().min(0).max(100),
   unexpectedPct: z.number().int().min(0).max(100),
   savingsPct: z.number().int().min(0).max(100),
+  expenseFrequency: z.enum(['daily', 'monthly', 'yearly']).optional(),
 });
 
 // Current budget, the derived monthly figures, the selectable models, and whether

@@ -8,15 +8,18 @@ import {
   CUSTOM_MODEL_ID,
   deriveBudget,
   findModel,
+  fromMonthly,
+  toMonthly,
   validateBudget,
 } from '@/lib/budget';
-import type { BudgetSuggestion } from '@/lib/types';
+import type { BudgetSuggestion, Frequency } from '@/lib/types';
 
 export interface BudgetValue {
   budgetModel: string;
   expectedPct: number;
   unexpectedPct: number;
   savingsPct: number;
+  expenseFrequency: Frequency;
 }
 
 /**
@@ -47,7 +50,9 @@ export function BudgetFields({
   const d = deriveBudget(effectiveIncome, 'monthly', value);
   const selectable = BUDGET_MODELS.filter((m) => m.selectable);
   const reference = BUDGET_MODELS.filter((m) => !m.selectable);
-  const expectedAmount = Math.round((monthlyIncomeRwf * value.expectedPct) / 100);
+  // Expected expenses shown in the user's chosen cadence (stored % is monthly).
+  const monthlyExpenses = Math.round((monthlyIncomeRwf * value.expectedPct) / 100);
+  const expectedAmount = fromMonthly(monthlyExpenses, value.expenseFrequency);
 
   function selectModel(id: string) {
     if (id === CUSTOM_MODEL_ID) {
@@ -57,6 +62,7 @@ export function BudgetFields({
     const m = findModel(id);
     if (!m) return;
     onChange({
+      ...value,
       budgetModel: id,
       expectedPct: m.expectedPct,
       unexpectedPct: m.unexpectedPct,
@@ -64,12 +70,14 @@ export function BudgetFields({
     });
   }
 
-  function setPct(key: keyof Omit<BudgetValue, 'budgetModel'>, n: number) {
+  function setPct(key: 'expectedPct' | 'unexpectedPct' | 'savingsPct', n: number) {
     onChange({ ...value, budgetModel: CUSTOM_MODEL_ID, [key]: n });
   }
 
   function setExpectedFromAmount(amount: number) {
-    const pct = monthlyIncomeRwf > 0 ? Math.round((amount / monthlyIncomeRwf) * 100) : value.expectedPct;
+    // Normalise the entered amount (in its cadence) to monthly, then to a %.
+    const monthly = toMonthly(amount, value.expenseFrequency);
+    const pct = monthlyIncomeRwf > 0 ? Math.round((monthly / monthlyIncomeRwf) * 100) : value.expectedPct;
     setPct('expectedPct', Math.max(0, Math.min(100, pct)));
   }
 
@@ -81,6 +89,7 @@ export function BudgetFields({
       const s = await onSuggest();
       if (s) {
         onChange({
+          ...value,
           budgetModel: CUSTOM_MODEL_ID,
           expectedPct: s.expectedPct,
           unexpectedPct: s.unexpectedPct,
@@ -126,15 +135,30 @@ export function BudgetFields({
 
       {suggestionMsg && <Alert tone="info">{suggestionMsg}</Alert>}
 
-      <Field label="Expected expenses (amount/month — auto-calculates %)">
-        <Input
-          type="number"
-          min={0}
-          disabled={disabled}
-          value={expectedAmount}
-          onChange={(e) => setExpectedFromAmount(Number(e.target.value))}
-        />
-      </Field>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2">
+          <Field label="Expected expenses (auto-calculates %)">
+            <Input
+              type="number"
+              min={0}
+              disabled={disabled}
+              value={expectedAmount}
+              onChange={(e) => setExpectedFromAmount(Number(e.target.value))}
+            />
+          </Field>
+        </div>
+        <Field label="Per">
+          <Select
+            disabled={disabled}
+            value={value.expenseFrequency}
+            onChange={(e) => onChange({ ...value, expenseFrequency: e.target.value as Frequency })}
+          >
+            <option value="daily">Day</option>
+            <option value="monthly">Month</option>
+            <option value="yearly">Year</option>
+          </Select>
+        </Field>
+      </div>
 
       <div className="grid grid-cols-3 gap-3">
         <Field label="Expenses %">

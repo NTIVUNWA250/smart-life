@@ -153,6 +153,8 @@ model FinanceProfile {
   expectedPct     Int       @default(60)
   unexpectedPct   Int       @default(10)
   savingsPct      Int       @default(30)
+  // Cadence the user states expected expenses in; display-only (budget is % based).
+  expenseFrequency Frequency @default(monthly)
   // Last definition change; enforces the once-per-month edit rule.
   lastEditedAt    DateTime  @default(now())
   createdAt       DateTime  @default(now())

@@ -100,6 +100,13 @@ export function toMonthly(amount: number, freq: Frequency): number {
   return Math.round(amount);
 }
 
+/** Inverse of toMonthly: express a monthly amount in the given cadence. */
+export function fromMonthly(monthlyAmount: number, freq: Frequency): number {
+  if (freq === 'daily') return Math.round(monthlyAmount / 30);
+  if (freq === 'yearly') return Math.round(monthlyAmount * 12);
+  return Math.round(monthlyAmount);
+}
+
 export interface BudgetDerived {
   monthlyIncomeRwf: number;
   expectedExpensesRwf: number;
