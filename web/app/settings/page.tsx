@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AppShell } from '@/components/AppShell';
 import { Alert, Badge, Button, Card, Field, Input, Select, Spinner } from '@/components/ui';
 import { BudgetFields, isBudgetValid, type BudgetValue } from '@/components/BudgetFields';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
@@ -33,8 +34,28 @@ export default function SettingsPage() {
         </div>
         <BudgetSection />
         <GoalsSection />
+        <AppearanceSection />
       </div>
     </AppShell>
+  );
+}
+
+function AppearanceSection() {
+  const { logout } = useAuth();
+  return (
+    <Card title="Appearance & account">
+      <div className="space-y-4">
+        <div>
+          <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Theme</p>
+          <ThemeToggle />
+        </div>
+        <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
+          <Button variant="danger" onClick={() => void logout()}>
+            Log out
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 }
 

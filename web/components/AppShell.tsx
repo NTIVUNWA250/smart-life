@@ -4,8 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { Spinner, Button } from './ui';
-import { ThemeToggle } from './ThemeToggle';
+import { Spinner } from './ui';
 
 interface NavItem {
   href: string;
@@ -26,7 +25,7 @@ const NAV: NavItem[] = [
  * renders the shared nav + logout.
  */
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -81,15 +80,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               })}
             </nav>
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <div className="hidden text-right sm:block">
-              <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{user.name}</div>
-              <div className="text-xs capitalize text-slate-500 dark:text-slate-400">{user.role}</div>
-            </div>
-            <Button variant="secondary" onClick={() => void logout()}>
-              Log out
-            </Button>
+          <div className="hidden text-right sm:block">
+            <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{user.name}</div>
+            <div className="text-xs capitalize text-slate-500 dark:text-slate-400">{user.role}</div>
           </div>
         </div>
       </header>
