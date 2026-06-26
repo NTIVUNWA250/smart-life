@@ -4,7 +4,7 @@ import { asyncHandler } from '../../middleware/async-handler.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { isSameUtcMonth } from '../../lib/period.js';
 import * as finance from './finance.service.js';
-import { BUDGET_MODELS, derive } from './finance.budget.js';
+import { BUDGET_MODELS, derive, deriveDaily } from './finance.budget.js';
 
 export const financeRouter = Router();
 financeRouter.use(requireAuth);
@@ -17,6 +17,9 @@ export const financeSchema = z.object({
   unexpectedPct: z.number().int().min(0).max(100),
   savingsPct: z.number().int().min(0).max(100),
   expenseFrequency: z.enum(['daily', 'monthly', 'yearly']).optional(),
+  heavyExpenseRwf: z.number().int().nonnegative().optional(),
+  heavyExpenseDay: z.number().int().min(1).max(28).optional(),
+  weekendBoostPct: z.number().int().min(0).max(100).optional(),
 });
 
 // Current budget, the derived monthly figures, the selectable models, and whether
@@ -28,6 +31,7 @@ financeRouter.get(
     res.json({
       profile,
       derived: profile ? derive(profile) : null,
+      daily: profile ? deriveDaily(profile, new Date()) : null,
       canEditNow: profile ? !isSameUtcMonth(profile.lastEditedAt) : true,
       models: BUDGET_MODELS,
     });
@@ -67,6 +71,6 @@ financeRouter.put(
     const profile = existing
       ? await finance.updateProfile(req.user!.id, input)
       : await finance.createProfile(req.user!.id, input);
-    res.json({ profile, derived: derive(profile) });
+    res.json({ profile, derived: derive(profile), daily: deriveDaily(profile, new Date()) });
   }),
 );

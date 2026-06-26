@@ -1,5 +1,6 @@
 import { badRequest } from '../../lib/http-error.js';
 import { toMonthlyRwf, type Frequency } from '../../lib/money.js';
+import { computeDailyBudget, type DailyBudget } from './finance.daily.js';
 
 /** Hard guardrails (SRS FR3): savings can never fall below 30% of income, so total
  *  expenses (expected + unexpected) can never exceed 70%. The split between expected
@@ -169,6 +170,31 @@ export function derive(p: FinanceLike): FinanceDerived {
     spendingAllowanceRwf: expectedExpensesRwf + unexpectedRwf,
     autoGoalTargetRwf: savingsRwf * 12,
   };
+}
+
+export interface DailyProfile extends FinanceLike {
+  heavyExpenseRwf: number;
+  heavyExpenseDay: number;
+  weekendBoostPct: number;
+}
+
+/**
+ * Derives the daily spending budget from a profile: the heavy lump (rent) is set
+ * aside, the rest of expected expenses + the unexpected buffer become the daily
+ * distributable, split into weekday/weekend limits.
+ */
+export function deriveDaily(p: DailyProfile, now: Date): DailyBudget {
+  const d = derive(p);
+  const heavyExpenseRwf = Math.max(0, Math.min(p.heavyExpenseRwf, d.expectedExpensesRwf));
+  const dailyExpectedTotalRwf = Math.max(0, d.expectedExpensesRwf - heavyExpenseRwf);
+  return computeDailyBudget({
+    dailyExpectedTotalRwf,
+    unexpectedRwf: d.unexpectedRwf,
+    heavyExpenseRwf,
+    heavyExpenseDay: p.heavyExpenseDay,
+    weekendBoostPct: p.weekendBoostPct,
+    now,
+  });
 }
 
 /**

@@ -22,6 +22,9 @@ export interface FinanceInput {
   unexpectedPct: number;
   savingsPct: number;
   expenseFrequency?: Frequency;
+  heavyExpenseRwf?: number;
+  heavyExpenseDay?: number;
+  weekendBoostPct?: number;
 }
 
 /** The auto goal spans a year so the monthly required-savings maths is stable. */
@@ -37,6 +40,19 @@ function validate(input: FinanceInput): FinanceInput {
     if (!model.selectable) throw badRequest(`"${model.name}" is below the 30% savings floor`);
   }
   validateAllocation(input);
+
+  const heavyDay = input.heavyExpenseDay ?? 1;
+  if (heavyDay < 1 || heavyDay > 28) throw badRequest('Heavy-expense day must be between 1 and 28');
+  const boost = input.weekendBoostPct ?? 30;
+  if (boost < 0 || boost > 100) throw badRequest('Weekend boost must be between 0 and 100%');
+  const heavy = input.heavyExpenseRwf ?? 0;
+  if (heavy < 0) throw badRequest('Heavy monthly expense must be non-negative');
+  const monthlyIncome = toMonthlyRwf(input.incomeRwf, input.incomeFrequency);
+  const expectedExpenses = Math.round((monthlyIncome * input.expectedPct) / 100);
+  if (heavy > expectedExpenses) {
+    throw badRequest('Heavy monthly expense can’t exceed your expected expenses');
+  }
+
   return input;
 }
 
@@ -66,6 +82,9 @@ function toData(input: FinanceInput) {
     unexpectedPct: input.unexpectedPct,
     savingsPct: input.savingsPct,
     expenseFrequency: input.expenseFrequency ?? 'monthly',
+    heavyExpenseRwf: Math.max(0, input.heavyExpenseRwf ?? 0),
+    heavyExpenseDay: input.heavyExpenseDay ?? 1,
+    weekendBoostPct: input.weekendBoostPct ?? 30,
   };
 }
 

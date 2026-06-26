@@ -168,6 +168,12 @@ model FinanceProfile {
   savingsPct      Int       @default(30)
   // Cadence the user states expected expenses in; display-only (budget is % based).
   expenseFrequency Frequency @default(monthly)
+  // Big monthly expense (e.g. rent) paid as a lump on the heavy-spending day;
+  // the remainder of expected expenses is spread across each day.
+  heavyExpenseRwf Int       @default(0)
+  heavyExpenseDay Int       @default(1) // day of month (1–28) for the lump payment
+  // Extra daily allowance on weekends vs weekdays (weekdays are lowered to match).
+  weekendBoostPct Int       @default(30)
   // Last definition change; enforces the once-per-month edit rule.
   lastEditedAt    DateTime  @default(now())
   createdAt       DateTime  @default(now())

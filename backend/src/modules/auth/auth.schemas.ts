@@ -18,6 +18,9 @@ export const signupSchema = z.object({
       unexpectedPct: z.number().int().min(0).max(100),
       savingsPct: z.number().int().min(0).max(100),
       expenseFrequency: z.enum(['daily', 'monthly', 'yearly']).optional(),
+      heavyExpenseRwf: z.number().int().nonnegative().optional(),
+      heavyExpenseDay: z.number().int().min(1).max(28).optional(),
+      weekendBoostPct: z.number().int().min(0).max(100).optional(),
     })
     .optional(),
 });
