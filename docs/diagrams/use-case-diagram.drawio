@@ -1,0 +1,91 @@
+<mxfile host="Electron" modified="2026-06-28T17:03:48.219Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.6.4 Chrome/124.0.6367.243 Electron/30.1.2 Safari/537.36" etag="Pv5Hc8Nq2RtBmZ0WaLxE" version="24.6.4" type="device">
+  <diagram id="use-cases" name="Use case diagram">
+    <mxGraphModel dx="1042" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SMART LIFE — use case diagram" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="420" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="boundary" value="SMART LIFE" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=none;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="210" y="70" width="430" height="630" as="geometry" />
+        </mxCell>
+        <mxCell id="a_student" value="Student" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="70" y="330" width="40" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a_approver" value="Approver&#10;(peer / parent)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="730" y="300" width="40" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a_admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="730" y="500" width="40" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a_pay" value="Payment&#10;provider" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="730" y="120" width="40" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_reg" value="Register &amp; log in" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="100" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_budget" value="Set up budget (income / expenses / savings)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="152" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_txn" value="Record income &amp; expense" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="204" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_pay" value="Make a payment" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="256" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_goal" value="Manage savings goals" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="308" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_screen" value="Set screen-time limits" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="360" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_time" value="Plan timetable &amp; isolation mode" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="412" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_remind" value="Receive reminders" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="464" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_link" value="Link a peer / parent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="516" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_reqappr" value="Request approval" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="568" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_dash" value="View dashboard &amp; analytics" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="440" y="118" width="170" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_check" value="Check spending limit" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="440" y="256" width="170" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_review" value="Review &amp; decide requests" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="440" y="330" width="170" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_users" value="Manage users &amp; roles" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="440" y="470" width="170" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_audit" value="View audit logs &amp; reports" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="440" y="540" width="170" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_reg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s2" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_budget"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s3" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_txn"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s4" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_pay"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s5" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_goal"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s6" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_screen"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s7" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_time"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s8" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_remind"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s9" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_link"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s10" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_reqappr"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="s11" style="endArrow=none;html=1;" edge="1" parent="1" source="a_student" target="uc_dash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ap1" style="endArrow=none;html=1;" edge="1" parent="1" source="a_approver" target="uc_review"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ap2" style="endArrow=none;html=1;" edge="1" parent="1" source="a_approver" target="uc_dash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ad1" style="endArrow=none;html=1;" edge="1" parent="1" source="a_admin" target="uc_users"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ad2" style="endArrow=none;html=1;" edge="1" parent="1" source="a_admin" target="uc_audit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="pp1" style="endArrow=none;html=1;" edge="1" parent="1" source="a_pay" target="uc_pay"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="inc1" value="«include»" style="endArrow=open;dashed=1;html=1;endSize=8;" edge="1" parent="1" source="uc_pay" target="uc_check"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ext1" value="«extend»&#10;(limit reached)" style="endArrow=open;dashed=1;html=1;endSize=8;" edge="1" parent="1" source="uc_reqappr" target="uc_pay"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

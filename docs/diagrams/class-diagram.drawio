@@ -1,0 +1,99 @@
+<mxfile host="Electron" modified="2026-06-28T18:27:33.640Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.6.4 Chrome/124.0.6367.243 Electron/30.1.2 Safari/537.36" etag="Tz0Yb6Vc4HnJ8wQ2KdRp" version="24.6.4" type="device">
+  <diagram id="domain-model" name="Class diagram">
+    <mxGraphModel dx="1042" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1150" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SMART LIFE — domain class diagram (Prisma data model)" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="560" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="User" value="User" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="210" height="146" as="geometry" />
+        </mxCell>
+        <mxCell id="User_a" value="+ id: String&#10;+ name: String&#10;+ email: String&#10;+ passwordHash: String&#10;+ role: Role&#10;+ isMinor: Boolean&#10;+ createdAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="User">
+          <mxGeometry y="26" width="210" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="FinanceProfile" value="FinanceProfile" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="330" y="70" width="240" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="FinanceProfile_a" value="+ id: String&#10;+ userId: String&#10;+ incomeRwf: Int&#10;+ incomeFrequency: Frequency&#10;+ budgetModel: String&#10;+ expectedPct: Int&#10;+ unexpectedPct: Int&#10;+ savingsPct: Int&#10;+ heavyExpenseRwf: Int&#10;+ heavyExpenseDay: Int&#10;+ weekendBoostPct: Int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="FinanceProfile">
+          <mxGeometry y="26" width="240" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="Transaction" value="Transaction" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="640" y="70" width="210" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="Transaction_a" value="+ id: String&#10;+ userId: String&#10;+ type: TxnType&#10;+ amountRwf: Int&#10;+ category: String&#10;+ occurredAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="Transaction">
+          <mxGeometry y="26" width="210" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="Goal" value="Goal" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="640" y="230" width="210" height="162" as="geometry" />
+        </mxCell>
+        <mxCell id="Goal_a" value="+ id: String&#10;+ userId: String&#10;+ title: String&#10;+ targetRwf: Int&#10;+ savedRwf: Int&#10;+ deadline: DateTime&#10;+ status: GoalStatus&#10;+ isAuto: Boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="Goal">
+          <mxGeometry y="26" width="210" height="136" as="geometry" />
+        </mxCell>
+        <mxCell id="SpendingLimit" value="SpendingLimit" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="330" y="320" width="240" height="162" as="geometry" />
+        </mxCell>
+        <mxCell id="SpendingLimit_a" value="+ id: String&#10;+ userId: String&#10;+ periodStart: DateTime&#10;+ periodEnd: DateTime&#10;+ limitRwf: Int&#10;+ spentRwf: Int&#10;+ unexpectedIncomeRwf: Int&#10;+ isBlocked: Boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="SpendingLimit">
+          <mxGeometry y="26" width="240" height="136" as="geometry" />
+        </mxCell>
+        <mxCell id="ScreenTimePolicy" value="ScreenTimePolicy" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="640" y="430" width="210" height="146" as="geometry" />
+        </mxCell>
+        <mxCell id="ScreenTimePolicy_a" value="+ id: String&#10;+ userId: String&#10;+ appOrSite: String&#10;+ kind: ScreenTargetKind&#10;+ dailyLimitMin: Int&#10;+ usedMin: Int&#10;+ isBlocked: Boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="ScreenTimePolicy">
+          <mxGeometry y="26" width="210" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="TimetableEntry" value="TimetableEntry" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="330" y="540" width="240" height="178" as="geometry" />
+        </mxCell>
+        <mxCell id="TimetableEntry_a" value="+ id: String&#10;+ userId: String&#10;+ title: String&#10;+ category: ActivityCategory&#10;+ daysOfWeek: Int[]&#10;+ startMin: Int&#10;+ endMin: Int&#10;+ isolation: Boolean&#10;+ reminderLeadMin: Int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="TimetableEntry">
+          <mxGeometry y="26" width="240" height="152" as="geometry" />
+        </mxCell>
+        <mxCell id="TimetableAllowedTarget" value="TimetableAllowedTarget" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="640" y="640" width="220" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="TimetableAllowedTarget_a" value="+ id: String&#10;+ entryId: String&#10;+ appOrSite: String&#10;+ kind: ScreenTargetKind&#10;+ label: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="TimetableAllowedTarget">
+          <mxGeometry y="26" width="220" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="PeerLink" value="PeerLink" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="60" y="300" width="210" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="PeerLink_a" value="+ id: String&#10;+ studentId: String&#10;+ approverId: String&#10;+ relationship: PeerRelationship&#10;+ status: LinkStatus" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="PeerLink">
+          <mxGeometry y="26" width="210" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="Approval" value="Approval" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="60" y="450" width="220" height="162" as="geometry" />
+        </mxCell>
+        <mxCell id="Approval_a" value="+ id: String&#10;+ requesterId: String&#10;+ approverId: String&#10;+ kind: ApprovalKind&#10;+ targetId: String&#10;+ reasonEnc: String&#10;+ status: ApprovalStatus&#10;+ decidedAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="Approval">
+          <mxGeometry y="26" width="220" height="136" as="geometry" />
+        </mxCell>
+        <mxCell id="RefreshToken" value="RefreshToken" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="60" y="650" width="210" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="RefreshToken_a" value="+ id: String&#10;+ userId: String&#10;+ tokenHash: String&#10;+ expiresAt: DateTime&#10;+ revokedAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="RefreshToken">
+          <mxGeometry y="26" width="210" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="AuditLog" value="AuditLog" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="330" y="740" width="210" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="AuditLog_a" value="+ id: String&#10;+ userId: String&#10;+ action: String&#10;+ detail: String&#10;+ createdAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="AuditLog">
+          <mxGeometry y="26" width="210" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="enums" value="Enums&#10;Role { student, approver, admin }&#10;TxnType { income, expense }&#10;GoalStatus { active, achieved, failed }&#10;Frequency { daily, monthly, yearly }&#10;ScreenTargetKind { app, url }&#10;ActivityCategory { study, work, meal, … }&#10;ApprovalKind { spending, screentime, goal_edit }&#10;PeerRelationship { peer, parent }&#10;LinkStatus { pending, accepted, rejected }" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;size=16;" vertex="1" parent="1">
+          <mxGeometry x="900" y="90" width="230" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="1 — 0..1" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="FinanceProfile"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="Transaction"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="Goal"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="SpendingLimit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="ScreenTimePolicy"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r6" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="TimetableEntry"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r7" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="PeerLink"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r8" value="1 — 0..*&#10;(requester / approver)" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="Approval"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r9" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="RefreshToken"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r10" value="1 — 0..*" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="User" target="AuditLog"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r11" value="1 — 0..*" style="endArrow=none;startArrow=diamondThin;startFill=1;html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="TimetableEntry" target="TimetableAllowedTarget"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
