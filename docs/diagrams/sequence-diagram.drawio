@@ -1,0 +1,69 @@
+<mxfile host="Electron" modified="2026-07-19T14:30:00.000Z" agent="draw.io" etag="SeqDiag01SmartLife" version="24.6.4" type="device">
+  <diagram id="sequence-overlimit" name="Sequence diagram">
+    <mxGraphModel dx="1042" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1240" pageHeight="860" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SMART LIFE — sequence diagram: over-limit payment block &amp; peer-approved override (FR3 / FR4 / FR6)" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="900" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="h_user" value="User (student)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="140" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="h_client" value="Client&#10;(Web / Mobile)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="70" width="140" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="h_api" value="REST API&#10;(Express + JWT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="70" width="140" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="h_limits" value="Limits service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="70" width="140" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="h_pay" value="Payment provider&#10;(MoMo / Airtel / Bank)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="810" y="70" width="140" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="h_peer" value="Peer / parent&#10;approver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="70" width="140" height="36" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ll_user" style="html=1;endArrow=none;dashed=1;strokeColor=#888888;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="106" as="sourcePoint" /><mxPoint x="130" y="740" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="ll_client" style="html=1;endArrow=none;dashed=1;strokeColor=#888888;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="310" y="106" as="sourcePoint" /><mxPoint x="310" y="740" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="ll_api" style="html=1;endArrow=none;dashed=1;strokeColor=#888888;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="500" y="106" as="sourcePoint" /><mxPoint x="500" y="740" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="ll_limits" style="html=1;endArrow=none;dashed=1;strokeColor=#888888;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="690" y="106" as="sourcePoint" /><mxPoint x="690" y="740" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="ll_pay" style="html=1;endArrow=none;dashed=1;strokeColor=#888888;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="880" y="106" as="sourcePoint" /><mxPoint x="880" y="740" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="ll_peer" style="html=1;endArrow=none;dashed=1;strokeColor=#888888;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1070" y="106" as="sourcePoint" /><mxPoint x="1070" y="740" as="targetPoint" /></mxGeometry></mxCell>
+
+        <mxCell id="m1" value="1: attempt payment (amount)" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="150" as="sourcePoint" /><mxPoint x="310" y="150" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m2" value="2: POST /limits/check" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="310" y="190" as="sourcePoint" /><mxPoint x="500" y="190" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m3" value="3: checkPayment(user, amount)" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="500" y="230" as="sourcePoint" /><mxPoint x="690" y="230" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m4" value="4: authorize(user, amount)" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="690" y="270" as="sourcePoint" /><mxPoint x="880" y="270" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m5" value="5: false — spend ≥ limit" style="html=1;endArrow=open;dashed=1;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="880" y="310" as="sourcePoint" /><mxPoint x="690" y="310" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m6" value="6: blockAllPayments(user)  [FR4]" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="690" y="350" as="sourcePoint" /><mxPoint x="880" y="350" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m7" value="7: allowed=false, blocked=true" style="html=1;endArrow=open;dashed=1;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="690" y="390" as="sourcePoint" /><mxPoint x="500" y="390" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m8" value="8: 402 — spending blocked" style="html=1;endArrow=open;dashed=1;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="500" y="430" as="sourcePoint" /><mxPoint x="310" y="430" as="targetPoint" /></mxGeometry></mxCell>
+
+        <mxCell id="sep" value="Peer / parental approval to override the block (FR6)" style="text;html=1;align=center;verticalAlign=middle;fontStyle=2;fontSize=11;fillColor=#f5f5f5;strokeColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="240" y="450" width="700" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m9" value="9: request override" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="310" y="500" as="sourcePoint" /><mxPoint x="500" y="500" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m10" value="10: POST /approvals → notify approver" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="500" y="540" as="sourcePoint" /><mxPoint x="1070" y="540" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m11" value="11: POST /approvals/:id/approve" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1070" y="580" as="sourcePoint" /><mxPoint x="500" y="580" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m12" value="12: unblock(user)" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="500" y="620" as="sourcePoint" /><mxPoint x="690" y="620" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m13" value="13: unblockAllPayments(user)" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="690" y="660" as="sourcePoint" /><mxPoint x="880" y="660" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="m14" value="14: 200 — override granted" style="html=1;endArrow=open;dashed=1;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="500" y="700" as="sourcePoint" /><mxPoint x="310" y="700" as="targetPoint" /></mxGeometry></mxCell>
+
+        <mxCell id="lg_box" value="Legend / Notation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=8;spacingTop=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="760" width="520" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_call" value="synchronous call / request" style="html=1;endArrow=block;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="80" y="795" as="sourcePoint" /><mxPoint x="150" y="795" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="lg_call_t" value="synchronous call / request" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1"><mxGeometry x="160" y="783" width="180" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg_ret" value="" style="html=1;endArrow=open;dashed=1;fontSize=11;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="80" y="825" as="sourcePoint" /><mxPoint x="150" y="825" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="lg_ret_t" value="return / response" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1"><mxGeometry x="160" y="813" width="180" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg_life" value="dashed vertical = object lifeline" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1"><mxGeometry x="360" y="783" width="210" height="24" as="geometry" /></mxCell>
+        <mxCell id="lg_note" value="grey band = optional/alt fragment" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1"><mxGeometry x="360" y="813" width="210" height="24" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

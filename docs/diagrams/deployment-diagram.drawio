@@ -1,0 +1,89 @@
+<mxfile host="Electron" modified="2026-07-19T14:31:00.000Z" agent="draw.io" etag="DeployDiag01SmartLife" version="24.6.4" type="device">
+  <diagram id="deployment-arch" name="Deployment diagram">
+    <mxGraphModel dx="1042" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1020" pageHeight="720" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SMART LIFE — deployment diagram (physical topology)" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="600" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tier_client" value="Client tier — user devices" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="620" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="n_pc" value="«device»&#10;PC / Laptop&#10;Chrome or Edge browser" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="95" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n_phone" value="«device»&#10;Android v10+ / iOS phone&#10;Flutter app + OS screen-time module (FR5)" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="370" y="95" width="260" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tier_cloud" value="Cloud hosting — managed PaaS" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="620" height="450" as="geometry" />
+        </mxCell>
+        <mxCell id="n_web" value="«execution environment»&#10;Web host (Node)&#10;Next.js 15 — SSR + static" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="80" y="265" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_web" value="«artifact» web/.next build" style="shape=note;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;size=12;" vertex="1" parent="1">
+          <mxGeometry x="110" y="360" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n_api" value="«execution environment»&#10;API host — container (Node 20)&#10;Express /api/v1 + JWT + Prisma" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="370" y="265" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_api" value="«artifact» backend/dist (Docker image)" style="shape=note;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;size=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="360" width="200" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="n_db" value="«device»&#10;Managed PostgreSQL&#10;(no Supabase — SRS §2.5)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="270" y="470" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tier_ext" value="External provider APIs" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;align=left;spacingLeft=8;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="220" width="280" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pay" value="«external system»&#10;MoMo / Airtel / Bank APIs&#10;(live mode — sandbox stub today)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="720" y="265" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cal" value="«external system»&#10;Google Calendar API" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="720" y="365" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" value="HTTPS / TLS" style="endArrow=open;html=1;endSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="n_pc" target="n_web"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="c2" value="HTTPS / JSON (REST)" style="endArrow=open;html=1;endSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="n_phone" target="n_api"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="c3" value="HTTPS / JSON (SSR → API)" style="endArrow=open;html=1;endSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="n_web" target="n_api"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="c4" value="SQL over TLS (Prisma)" style="endArrow=open;html=1;endSize=8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="n_api" target="n_db"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="c5" value="HTTPS (live mode)" style="endArrow=open;html=1;dashed=1;endSize=8;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="n_api" target="e_pay"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="c6" value="HTTPS (live mode)" style="endArrow=open;html=1;dashed=1;endSize=8;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="n_api" target="e_cal"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="lg_box" value="Legend / Notation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=8;spacingTop=6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="470" width="280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_node" value="" style="shape=cube;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="716" y="504" width="44" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_node_t" value="«device» / «execution environment» node" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="772" y="504" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_db" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;backgroundOutline=1;size=8;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="722" y="544" width="34" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_db_t" value="managed database node" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="772" y="544" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_ext" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="716" y="584" width="44" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_ext_t" value="external provider system" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="772" y="583" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_path" value="active (live)" style="endArrow=open;html=1;endSize=8;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="716" y="628" as="sourcePoint" /><mxPoint x="760" y="628" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="lg_path_t" value="communication path (solid = active)" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="772" y="616" width="200" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_pend" value="pending" style="endArrow=open;html=1;dashed=1;endSize=8;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="716" y="652" as="sourcePoint" /><mxPoint x="760" y="652" as="targetPoint" /></mxGeometry></mxCell>
+        <mxCell id="lg_pend_t" value="dashed = live-mode path (credentials pending)" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="772" y="640" width="210" height="24" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
