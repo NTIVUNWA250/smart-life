@@ -1,10 +1,18 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import { recomputeCurrentLimit } from '../src/modules/limits/limits.service.js';
 
 dotenv.config();
 
 const prisma = new PrismaClient();
+
+/** A date `months` calendar months from now, in UTC. */
+function monthsFromNow(months: number): Date {
+  const d = new Date();
+  d.setUTCMonth(d.getUTCMonth() + months);
+  return d;
+}
 
 async function main() {
   const password = await bcrypt.hash('password123', 12);
@@ -45,15 +53,37 @@ async function main() {
     });
   }
 
-  // A manually-created savings goal
+  // A manually-created savings goal.
+  //
+  // The 24-month horizon is deliberate. The limit is
+  // `income − max(savingsBucket, requiredGoalSavings)`, and the auto goal below
+  // already claims the entire savings bucket (savings% × income, spread over 12
+  // months). So every month this goal demands comes straight off the demo
+  // student's spending limit: at 3 months it wanted 100,000 of a 150,000 income
+  // and left a 5,000 limit, which looks like a broken app. At 24 months it asks
+  // 12,500 and leaves ~92,500.
+  //
+  // The deadline is also re-synced on every seed, like the auto goal. Creating it
+  // only when absent let it drift into the past, and `monthsUntil` floors at 1
+  // month — so the whole remaining target fell due at once and the student was
+  // permanently blocked.
+  const manualDeadline = monthsFromNow(24);
   const existingManual = await prisma.goal.findFirst({
     where: { userId: student.id, title: 'Laptop fund' },
   });
-  if (!existingManual) {
-    const deadline = new Date();
-    deadline.setUTCMonth(deadline.getUTCMonth() + 3);
+  if (existingManual) {
+    await prisma.goal.update({
+      where: { id: existingManual.id },
+      data: { deadline: manualDeadline },
+    });
+  } else {
     await prisma.goal.create({
-      data: { userId: student.id, title: 'Laptop fund', targetRwf: 300_000, deadline },
+      data: {
+        userId: student.id,
+        title: 'Laptop fund',
+        targetRwf: 300_000,
+        deadline: manualDeadline,
+      },
     });
   }
 
@@ -74,8 +104,7 @@ async function main() {
 
   // Auto savings goal: save savings% of monthly income across a 12-month horizon.
   const monthlySavings = Math.floor((profile.incomeRwf * profile.savingsPct) / 100);
-  const autoDeadline = new Date();
-  autoDeadline.setUTCMonth(autoDeadline.getUTCMonth() + 12);
+  const autoDeadline = monthsFromNow(12);
   const existingAuto = await prisma.goal.findFirst({
     where: { userId: student.id, isAuto: true },
   });
@@ -104,10 +133,22 @@ async function main() {
     create: { userId: student.id, appOrSite: 'instagram', dailyLimitMin: 60 },
   });
 
-  console.log(
-    `Seed complete. Login with student@smartlife.rw / password123` +
-      ` (auto savings goal: RWF ${(monthlySavings * 12).toLocaleString('en-RW')})`,
-  );
+  // Report the limit the seeded data actually produces, using the real engine
+  // rather than a copy of its formula. A zero limit means the demo student is
+  // blocked and every expense will 409 — which reads as a broken app, so it is
+  // worth failing loudly here rather than discovering it in the UI.
+  const limit = await recomputeCurrentLimit(student.id);
+  const rwf = (n: number) => `RWF ${n.toLocaleString('en-RW')}`;
+
+  console.log(`Seed complete. Login with student@smartlife.rw / password123`);
+  console.log(`  auto savings goal : ${rwf(monthlySavings * 12)} over 12 months`);
+  console.log(`  monthly limit     : ${rwf(limit.limitRwf)}${limit.isBlocked ? '  ** BLOCKED **' : ''}`);
+  if (limit.limitRwf === 0) {
+    console.warn(
+      '\n  ⚠ The demo student has no spending room: active goals demand at least the\n' +
+        '    whole income. Lengthen a goal deadline or lower a target.',
+    );
+  }
 }
 
 main()
