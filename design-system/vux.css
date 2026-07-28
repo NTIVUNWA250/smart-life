@@ -1,0 +1,471 @@
+/* ============================================================================
+   VUX — signature interface system
+   ----------------------------------------------------------------------------
+   Three layers of colour:
+     1. The mark      — the logo. Constant, never a UI colour.
+     2. The product   — accent + ground. The only thing that changes per app.
+     3. The state     — five hues. Constant in every product, on every platform.
+
+   Dark mode is honoured from three sources, in increasing priority:
+     prefers-color-scheme  ->  html.dark  ->  html[data-theme="dark"]
+   The class hook exists so this drops into an app that already toggles `.dark`.
+
+   Every colour pair in here was verified against WCAG contrast on all supported
+   grounds before it shipped. If you add a product hue, re-run that check — see
+   README.md.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- 1. TOKENS */
+
+:root {
+  /* -- product config. These seven lines are the whole per-app setup. ------ */
+  --vux-brand-base: #16181D;   /* hue the grounds are derived from            */
+  --vux-brand-lt:   #16181D;   /* accent on light                             */
+  --vux-brand-dk:   #EDEEF0;   /* accent on dark                              */
+  --vux-tint-l:     3%;        /* how much brand folds into the light ground  */
+  --vux-tint-d:     0%;        /* ...and into the dark one                    */
+  --vux-ground-d:   #131519;   /* dark base before tinting                    */
+  --vux-surface-d:  #1B1E23;   /* dark card base before tinting               */
+
+  /* -- derived grounds. Never hand-pick these. ---------------------------- */
+  --vux-paper:   color-mix(in srgb, var(--vux-brand-base) var(--vux-tint-l), #FFFFFF);
+  --vux-surface: color-mix(in srgb, var(--vux-brand-base) calc(var(--vux-tint-l) / 3), #FFFFFF);
+  --vux-brand:   var(--vux-brand-lt);
+
+  --vux-ink:            #232830;   /* soft charcoal, not black — 13.95:1 on house paper */
+  --vux-muted:          #5C6570;
+  --vux-hairline:       rgba(20, 23, 29, 0.15);
+  --vux-hairline-soft:  rgba(20, 23, 29, 0.08);
+
+  /* -- state. Three roles per family: text / fill / tint. ------------------ */
+  --vux-success-text: #0E6B3C;  --vux-success-fill: #12A150;  --vux-success-tint: #E2F4E9;
+  --vux-attention-text: #7A4A00; --vux-attention-fill: #E09000; --vux-attention-tint: #FCF0D9;
+  --vux-danger-text:  #B01E13;  --vux-danger-fill:  #E03024;  --vux-danger-tint:  #FCE7E4;
+  --vux-info-text:    #14509F;  --vux-info-fill:    #2A6FE0;  --vux-info-tint:    #E3ECFB;
+  --vux-neutral-text: #49525F;  --vux-neutral-fill: #5F6B7C;  --vux-neutral-tint: #ECEEF1;
+
+  /* Label colour for a SOLID state chip. No single value passes on all five,
+     so each family carries its own. */
+  --vux-on-success:   #12100A;
+  --vux-on-attention: #12100A;
+  --vux-on-danger:    #FFFFFF;
+  --vux-on-info:      #FFFFFF;
+  --vux-on-neutral:   #FFFFFF;
+
+  /* -- type. Slab House: Zilla Slab / Poppins / IBM Plex Mono. ------------- */
+  --vux-font-display: "Zilla Slab", "Roboto Slab", Rockwell, "Bookman Old Style", Georgia, serif;
+  --vux-font-body:    Poppins, "Century Gothic", "Trebuchet MS", system-ui, -apple-system, sans-serif;
+  --vux-font-util:    "IBM Plex Mono", "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  --vux-display-track: -0.015em;
+
+  /* Two ratios. UI steps by 1.125 so dense screens stay dense; display steps
+     by root-2 so headlines are genuinely dramatic. Base is 17px, not 16 —
+     Poppins has a modest x-height and reads small at 16. */
+  --vux-text-2xs: 0.750rem;   /* 12    mono micro-labels        */
+  --vux-text-xs:  0.840rem;   /* 13.4  secondary, captions      */
+  --vux-text-sm:  1.0625rem;  /* 17    BODY BASE                */
+  --vux-text-md:  1.196rem;   /* 19.1  emphasis body            */
+  --vux-text-lg:  1.345rem;   /* 21.5  lede                     */
+  --vux-display-1: 1.500rem;  /* 24    card heading             */
+  --vux-display-2: 2.125rem;  /* 34    section heading          */
+  --vux-display-3: 3.000rem;  /* 48    section opener           */
+  --vux-display-4: 4.250rem;  /* 68    page title               */
+
+  /* -- geometry & motion --------------------------------------------------- */
+  --vux-radius: 3px;          /* everywhere. not 8, not 12, no pills.        */
+  --vux-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --vux-wash-ease: cubic-bezier(0.33, 0, 0.25, 1);   /* gentler than the UI curve */
+  --vux-dur-state: 120ms;
+  --vux-dur-hover: 200ms;
+  --vux-dur-theme: 320ms;
+  --vux-wash-alpha: 15%;      /* page-wash strength. 26% is the ceiling.     */
+
+  /* -- the mark ------------------------------------------------------------ */
+  --vux-mark-disc: #232830;
+  --vux-mark-cut:  #FFFFFF;
+}
+
+/* ------------------------------------------------------------ 2. DARK MODE */
+/* The same block three times, by design: the OS preference must be overridable
+   in BOTH directions by an explicit choice, and CSS has no way to say that
+   without repeating the declarations. Keep them in sync. */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vux-paper:   color-mix(in srgb, var(--vux-brand-base) var(--vux-tint-d), var(--vux-ground-d));
+    --vux-surface: color-mix(in srgb, var(--vux-brand-base) calc(var(--vux-tint-d) * 1.3), var(--vux-surface-d));
+    --vux-brand:   var(--vux-brand-dk);
+    --vux-ink: #E8EAEE;
+    --vux-muted: #97A0AC;
+    --vux-hairline: rgba(232, 234, 238, 0.16);
+    --vux-hairline-soft: rgba(232, 234, 238, 0.08);
+    --vux-success-text: #5CE896;   --vux-success-tint: rgba(18, 161, 80, 0.20);
+    --vux-attention-text: #FFC53D; --vux-attention-tint: rgba(224, 144, 0, 0.20);
+    --vux-danger-text: #FF7A6E;    --vux-danger-tint: rgba(224, 48, 36, 0.22);
+    --vux-info-text: #7FB3FF;      --vux-info-tint: rgba(42, 111, 224, 0.22);
+    --vux-neutral-text: #A3AEBF;   --vux-neutral-tint: rgba(95, 107, 124, 0.26);
+    --vux-mark-disc: #EDEEF0;      --vux-mark-cut: #131519;
+  }
+}
+
+html.dark,
+html[data-theme="dark"] {
+  --vux-paper:   color-mix(in srgb, var(--vux-brand-base) var(--vux-tint-d), var(--vux-ground-d));
+  --vux-surface: color-mix(in srgb, var(--vux-brand-base) calc(var(--vux-tint-d) * 1.3), var(--vux-surface-d));
+  --vux-brand:   var(--vux-brand-dk);
+  --vux-ink: #E8EAEE;
+  --vux-muted: #97A0AC;
+  --vux-hairline: rgba(232, 234, 238, 0.16);
+  --vux-hairline-soft: rgba(232, 234, 238, 0.08);
+  --vux-success-text: #5CE896;   --vux-success-tint: rgba(18, 161, 80, 0.20);
+  --vux-attention-text: #FFC53D; --vux-attention-tint: rgba(224, 144, 0, 0.20);
+  --vux-danger-text: #FF7A6E;    --vux-danger-tint: rgba(224, 48, 36, 0.22);
+  --vux-info-text: #7FB3FF;      --vux-info-tint: rgba(42, 111, 224, 0.22);
+  --vux-neutral-text: #A3AEBF;   --vux-neutral-tint: rgba(95, 107, 124, 0.26);
+  --vux-mark-disc: #EDEEF0;      --vux-mark-cut: #131519;
+}
+
+/* An explicit light choice must beat a dark OS preference. */
+html[data-theme="light"] {
+  --vux-paper:   color-mix(in srgb, var(--vux-brand-base) var(--vux-tint-l), #FFFFFF);
+  --vux-surface: color-mix(in srgb, var(--vux-brand-base) calc(var(--vux-tint-l) / 3), #FFFFFF);
+  --vux-brand:   var(--vux-brand-lt);
+  --vux-ink: #232830;
+  --vux-muted: #5C6570;
+  --vux-hairline: rgba(20, 23, 29, 0.15);
+  --vux-hairline-soft: rgba(20, 23, 29, 0.08);
+  --vux-success-text: #0E6B3C;   --vux-success-tint: #E2F4E9;
+  --vux-attention-text: #7A4A00; --vux-attention-tint: #FCF0D9;
+  --vux-danger-text: #B01E13;    --vux-danger-tint: #FCE7E4;
+  --vux-info-text: #14509F;      --vux-info-tint: #E3ECFB;
+  --vux-neutral-text: #49525F;   --vux-neutral-tint: #ECEEF1;
+  --vux-mark-disc: #232830;      --vux-mark-cut: #FFFFFF;
+}
+
+/* --------------------------------------------------------- 3. PRODUCT HUES */
+/* Put one of these on <html> — or copy the six lines into your own theme.
+   Verified: every state colour clears 4.5:1 on all of these grounds, in both
+   modes. The lowest pair in the set is `success` on the finance ground at
+   5.16:1. Past roughly 12% tint, coloured text starts failing — do not raise
+   --vux-tint-* without re-checking. */
+
+html[data-product="house"] {
+  --vux-brand-base: #16181D; --vux-brand-lt: #16181D; --vux-brand-dk: #EDEEF0;
+  --vux-tint-l: 3%; --vux-tint-d: 0%; --vux-ground-d: #131519;
+}
+html[data-product="agriculture"] {
+  --vux-brand-base: #2E6B2A; --vux-brand-lt: #2E6B2A; --vux-brand-dk: #86D07E;
+  --vux-tint-l: 6%; --vux-tint-d: 9%; --vux-ground-d: #0B0D10;
+}
+html[data-product="education"] {
+  --vux-brand-base: #5B3A8E; --vux-brand-lt: #5B3A8E; --vux-brand-dk: #BCA1E8;
+  --vux-tint-l: 6%; --vux-tint-d: 9%; --vux-ground-d: #0B0D10;
+  /* Editorial: a softer slab with slight calligraphic contrast. Education has
+     real reading in it — lessons, feedback, reports — and Aleo carries a
+     paragraph better than Zilla's heavier, more mechanical slabs. */
+  --vux-font-display: Aleo, Bitter, "Roboto Slab", Rockwell, Georgia, serif;
+  --vux-font-util: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  --vux-display-track: -0.012em;
+}
+html[data-product="trading"] {
+  --vux-brand-base: #7A5518; --vux-brand-lt: #7A5518; --vux-brand-dk: #E0B563;
+  --vux-tint-l: 6%; --vux-tint-d: 9%; --vux-ground-d: #0B0D10;
+  /* Ledger: Roboto Slab is squarer and more even than Zilla — it reads as a
+     printed statement rather than a magazine, which is what money wants. Plex
+     Mono stays: its figures are unambiguous, and trading is all figures. */
+  --vux-font-display: "Roboto Slab", "Zilla Slab", Rockwell, "Bookman Old Style", Georgia, serif;
+  --vux-display-track: -0.02em;
+}
+html[data-product="coding"] {
+  --vux-brand-base: #045B62; --vux-brand-lt: #045B62; --vux-brand-dk: #5FC7CE;
+  --vux-tint-l: 6%; --vux-tint-d: 9%; --vux-ground-d: #0B0D10;
+  /* Terminal: monospace headlines. The one product where a terminal voice is
+     the honest one rather than a costume. */
+  --vux-font-display: "Space Mono", "Martian Mono", "Cascadia Mono", Consolas, monospace;
+  --vux-font-util: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  --vux-display-track: -0.02em;
+}
+html[data-product="finance"] {
+  --vux-brand-base: #7B2D6B; --vux-brand-lt: #7B2D6B; --vux-brand-dk: #D98CC4;
+  --vux-tint-l: 6%; --vux-tint-d: 9%; --vux-ground-d: #0B0D10;
+}
+html[data-product="health"] {
+  --vux-brand-base: #12558C; --vux-brand-lt: #12558C; --vux-brand-dk: #7FB6E0;
+  --vux-tint-l: 6%; --vux-tint-d: 9%; --vux-ground-d: #0B0D10;
+}
+
+/* ------------------------------------------------------------------ 4. BASE */
+
+.vux, body.vux {
+  background: var(--vux-paper);
+  color: var(--vux-ink);
+  font-family: var(--vux-font-body);
+  font-size: var(--vux-text-sm);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--vux-dur-theme) var(--vux-ease),
+              color var(--vux-dur-theme) var(--vux-ease);
+}
+
+.vux-display {
+  font-family: var(--vux-font-display);
+  letter-spacing: var(--vux-display-track);
+  text-wrap: balance;
+  font-weight: 600;
+}
+
+/* Mono, caps, wide tracking. The single most recognisable thing in the system. */
+.vux-label {
+  font-family: var(--vux-font-util);
+  font-size: var(--vux-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--vux-muted);
+}
+
+/* Any column of digits. Non-negotiable. */
+.vux-num { font-family: var(--vux-font-util); font-variant-numeric: tabular-nums; }
+
+.vux-prose { max-width: 65ch; }
+
+:where(.vux) :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--vux-brand);
+  outline-offset: 2px;
+  border-radius: var(--vux-radius);
+}
+
+/* ---------------------------------------------------------- 5. STATE CHIPS */
+/* Tint is the default. Outline recedes on white; solid is a shout. */
+
+.vux-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--vux-font-util);
+  font-size: var(--vux-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  border-radius: 2px;
+  padding: 0.28rem 0.55rem;
+  background: var(--vux-tone-tint);
+  color: var(--vux-tone-text);
+  border: 1px solid color-mix(in srgb, var(--vux-tone-text) 28%, transparent);
+}
+.vux-chip--line { background: transparent; border-color: currentColor; }
+.vux-chip--solid {
+  background: var(--vux-tone-fill);
+  color: var(--vux-tone-on);
+  border-color: var(--vux-tone-fill);
+  font-weight: 600;
+}
+
+/* Tone selectors. Put one on the chip, the button, the alert — anything. */
+.vux-success   { --vux-tone-text: var(--vux-success-text);   --vux-tone-fill: var(--vux-success-fill);   --vux-tone-tint: var(--vux-success-tint);   --vux-tone-on: var(--vux-on-success); }
+.vux-attention { --vux-tone-text: var(--vux-attention-text); --vux-tone-fill: var(--vux-attention-fill); --vux-tone-tint: var(--vux-attention-tint); --vux-tone-on: var(--vux-on-attention); }
+.vux-danger    { --vux-tone-text: var(--vux-danger-text);    --vux-tone-fill: var(--vux-danger-fill);    --vux-tone-tint: var(--vux-danger-tint);    --vux-tone-on: var(--vux-on-danger); }
+.vux-info      { --vux-tone-text: var(--vux-info-text);      --vux-tone-fill: var(--vux-info-fill);      --vux-tone-tint: var(--vux-info-tint);      --vux-tone-on: var(--vux-on-info); }
+.vux-neutral   { --vux-tone-text: var(--vux-neutral-text);   --vux-tone-fill: var(--vux-neutral-fill);   --vux-tone-tint: var(--vux-neutral-tint);   --vux-tone-on: var(--vux-on-neutral); }
+.vux-brand-tone { --vux-tone-text: var(--vux-brand);         --vux-tone-fill: var(--vux-brand);          --vux-tone-tint: color-mix(in srgb, var(--vux-brand) 12%, transparent); --vux-tone-on: var(--vux-paper); }
+
+/* -------------------------------------------------------------- 6. BUTTONS */
+/* One button, two voices, five border treatments. The colour is the ACTION'S
+   STATE, not decoration: a Deny wears danger, an Approve wears success. */
+
+.vux-btn {
+  cursor: pointer;
+  background: transparent;
+  color: var(--vux-tone-text, var(--vux-ink));
+  border: 1px solid var(--vux-tone-text, var(--vux-hairline));
+  border-radius: var(--vux-radius);
+  font-family: var(--vux-font-util);
+  font-size: var(--vux-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 0.7rem 1.05rem;
+  transition: background var(--vux-dur-hover) var(--vux-ease),
+              border-color var(--vux-dur-hover) var(--vux-ease),
+              box-shadow var(--vux-dur-hover) var(--vux-ease);
+}
+.vux-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--vux-tone-text, var(--vux-ink)) 10%, transparent);
+}
+.vux-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Sentence-case voice, for products where all-caps feels shouty. */
+.vux-btn--sentence {
+  font-family: var(--vux-font-body);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--vux-text-xs);
+  font-weight: 600;
+}
+
+/* -- border treatments. -------------------------------------------------
+   HOUSE DEFAULT IS `notch` for anything that commits, `plain` for everything
+   else. One notched button per screen: if two actions both look primary,
+   neither is. The other three stay in the system for products that need them,
+   but they are not the house voice. */
+.vux-btn--plain { /* 1px all round. Secondary and tertiary actions. */ }
+
+.vux-btn--weighted { border-bottom-width: 3px; }
+
+/* Corners only — drawn with eight background gradients rather than pseudo
+   elements, so ::before/::after stay free for icons and spinners. */
+.vux-btn--bracket {
+  border-color: transparent;
+  border-radius: 0;
+  --vux-c: var(--vux-tone-text, var(--vux-ink));
+  background-image:
+    linear-gradient(var(--vux-c) 0 0), linear-gradient(var(--vux-c) 0 0),
+    linear-gradient(var(--vux-c) 0 0), linear-gradient(var(--vux-c) 0 0),
+    linear-gradient(var(--vux-c) 0 0), linear-gradient(var(--vux-c) 0 0),
+    linear-gradient(var(--vux-c) 0 0), linear-gradient(var(--vux-c) 0 0);
+  background-repeat: no-repeat;
+  background-size:
+    0.55rem 1px, 1px 0.55rem, 0.55rem 1px, 1px 0.55rem,
+    0.55rem 1px, 1px 0.55rem, 0.55rem 1px, 1px 0.55rem;
+  background-position:
+    left top, left top, right top, right top,
+    left bottom, left bottom, right bottom, right bottom;
+}
+/* The hover tint must sit UNDER the corner marks, so it is a background-color
+   rather than another layer. */
+.vux-btn--bracket:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--vux-tone-text, var(--vux-ink)) 10%, transparent);
+}
+
+.vux-btn--double {
+  border-color: var(--vux-tone-text, var(--vux-ink));
+  box-shadow: inset 0 0 0 1px var(--vux-paper), inset 0 0 0 2px var(--vux-tone-text, var(--vux-ink));
+}
+
+.vux-btn--notch {
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 0.65rem) 0, 100% 0.65rem, 100% 100%, 0 100%);
+}
+/* clip-path cuts the outline too, so the focus ring would lose its corner.
+   Draw it as a ring instead — visible, and it follows the cut edge. */
+.vux-btn--notch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--vux-paper), 0 0 0 4px var(--vux-brand);
+}
+
+/* ------------------------------------------------------- 7. RAIL & NAV */
+
+.vux-rail {
+  background: var(--vux-surface);
+  padding: 1rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  border-right: 1px solid var(--vux-hairline);
+}
+.vux-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--vux-radius);
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  color: var(--vux-muted);
+  font-family: var(--vux-font-body);
+  font-size: var(--vux-text-xs);
+  text-align: left;
+  transition: color var(--vux-dur-state) var(--vux-ease),
+              background var(--vux-dur-state) var(--vux-ease);
+}
+.vux-nav:hover { color: var(--vux-ink); background: color-mix(in srgb, var(--vux-ink) 5%, transparent); }
+.vux-nav[aria-current="page"] {
+  color: var(--vux-brand);
+  background: color-mix(in srgb, var(--vux-brand) 10%, transparent);
+  font-weight: 600;
+}
+.vux-nav-glyph { width: 1.3rem; display: grid; place-items: center; flex: none; }
+
+/* Mobile: five tabs, no more. The active tab gets colour AND a cap — colour is
+   never the only signal. */
+.vux-tabbar { display: flex; border-top: 1px solid var(--vux-hairline); background: var(--vux-surface); }
+.vux-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0 0.65rem;
+  color: var(--vux-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--vux-font-body);
+  font-size: 0.62rem;
+  position: relative;
+  min-height: 48px; /* touch target */
+}
+.vux-tab[aria-current="page"] { color: var(--vux-brand); }
+.vux-tab[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 1.6rem;
+  height: 2px;
+  background: var(--vux-brand);
+  border-radius: 0 0 2px 2px;
+}
+
+.vux-credit {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--vux-font-util);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vux-muted);
+}
+
+/* ------------------------------------------------------------- 8. THE WASH */
+/* Two scopes. Page for events that change the user's situation (payment
+   refused, session expiring); component for something inside one card.
+   Using the page wash for a field validation error is shouting at a typo. */
+
+.vux-wash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: var(--vux-wash-colour, transparent);
+  opacity: 0;
+}
+.vux-wash[data-on="true"] { animation: vux-wash-pass 1600ms var(--vux-wash-ease) 1; }
+
+.vux-wash-local { position: relative; isolation: isolate; }
+.vux-wash-local::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--vux-radius);
+  background: var(--vux-wash-colour, transparent);
+  opacity: 0;
+}
+.vux-wash-local[data-on="true"]::before { animation: vux-wash-pass 1400ms var(--vux-wash-ease) 1; }
+
+/* Slow on purpose. It rises over ~350ms, holds long enough to register, then
+   drains across a full second — a breath, not a camera flash. Once, never
+   repeated: anything above three flashes a second is a seizure risk, and red is
+   the colour to be most careful with. */
+@keyframes vux-wash-pass {
+  0%   { opacity: 0; }
+  22%  { opacity: 1; }
+  38%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vux, body.vux { transition-duration: 1ms; }
+  .vux-wash[data-on="true"],
+  .vux-wash-local[data-on="true"]::before { animation: none; }
+}
