@@ -123,17 +123,68 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     );
   }
 
-  /// Pulls usage from the OS provider stub and reports it to the backend, which
-  /// applies the daily limits and may block apps.
+  /// Pulls today's usage from the OS and reports it to the backend, which applies
+  /// the daily limits and may block apps.
   Future<void> _syncUsage(List<ScreenTimePolicy> policies) async {
-    final usage = await _native.usageFor(policies.map((p) => p.appOrSite).toList());
+    final Map<String, int> usage;
+    try {
+      usage = await _native.usageFor(policies.map((p) => p.appOrSite).toList());
+    } on ScreenTimePermissionException {
+      if (mounted) await _promptForUsageAccess();
+      return;
+    }
+
     final payload = usage.entries
         .map((e) => <String, Object>{'appOrSite': e.key, 'usedMin': e.value})
         .toList();
-    await widget.api.reportUsage(payload);
+    // The backend rejects an empty report, and there is nothing to say anyway.
+    if (payload.isEmpty) {
+      if (mounted) {
+        showSnack(context, 'No usage to report yet for these limits.');
+      }
+      return;
+    }
+
+    try {
+      await widget.api.reportUsage(payload);
+    } catch (e) {
+      if (mounted) showSnack(context, e.toString());
+      return;
+    }
     if (mounted) {
       showSnack(context, 'Usage synced from device.');
       _reload();
+    }
+  }
+
+  /// Usage access is a Settings toggle, not a runtime permission, so the best we
+  /// can do is explain and open the right screen.
+  Future<void> _promptForUsageAccess() async {
+    final grant = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Allow usage access'),
+        content: const Text(
+          'To measure how long you spend in each app, SMART LIFE needs usage '
+          'access. Find SMART LIFE in the list on the next screen and turn it on.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Open settings'),
+          ),
+        ],
+      ),
+    );
+    if (grant != true) return;
+
+    final opened = await _native.openUsageAccessSettings();
+    if (!opened && mounted) {
+      showSnack(context, 'This device has no usage-access screen.');
     }
   }
 

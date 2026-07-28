@@ -9,9 +9,9 @@ Status: ☐ planned · ◑ in progress · ☑ done.
 | ----- | --------------------------------------------- | --------------------------------------- | ------ |
 | FR1   | Signup / login for users                      | `backend modules/auth` + web + mobile   | ☑      |
 | FR2   | Input income, expenses, set goals             | `backend transactions/goals` + web + mobile | ☑  |
-| FR3   | Calculate spending limits automatically       | `backend modules/limits`                | ☑      |
-| FR4   | Lock expenses via provider APIs               | `backend modules/limits` + `providers/payment` | ☑ |
-| FR5   | Track & limit time on apps/sites              | `backend modules/screentime` (daily reset) + mobile `MethodChannel` boundary. Android app-picker native bridge done; usage/enforcement native OS modules (Android `UsageStatsManager` + accessibility service, iOS `FamilyControls`/`ManagedSettings`) pending | ◑ |
+| FR3   | Calculate spending limits automatically       | `backend modules/limits` (monthly) + `finance.daily` (weekly-aware daily limit, weekend flex, heavy-expense lump) | ☑ |
+| FR4   | Lock expenses via provider APIs               | `backend modules/limits` + `providers/payment`; daily + monthly enforced server-side in `checkPayment`, called from `POST /transactions` so clients cannot bypass it | ☑ |
+| FR5   | Track & limit time on apps/sites              | `backend modules/screentime` (daily reset) + mobile `MethodChannel`. Android: app picker and `UsageStatsManager` measurement done, incl. the usage-access grant flow. **Blocking is not implemented on any platform** — Android needs an accessibility/overlay service, iOS needs all of `FamilyControls`/`ManagedSettings` | ◑ |
 | FR6   | Peer approval to unblock limits               | `backend approvals/peers` + web + mobile | ☑     |
 | FR7   | Analytics dashboard (time + finances)         | `backend modules/analytics` + web + mobile | ☑   |
 
@@ -51,11 +51,14 @@ Status: ☐ planned · ◑ in progress · ☑ done.
 
 ## Verification (automated tests)
 
-Backend logic is covered by the Vitest suite (`cd backend && npm test`) — 16 test
-files / 89 tests, all passing:
+Backend logic is covered by the Vitest suite (`cd backend && npm test`) — 17 test
+files / 100 tests, all passing:
 
 - **Domain/finance:** `finance.budget`, `finance.daily`, `screentime.targets`,
   `timetable.schedule`
+- **Limits (FR3/FR4):** `limits.enforcement` — the daily budget refusing an
+  expense the monthly limit would still allow, cumulative same-day spend, and the
+  rent-day headroom (persistence mocked, so no PostgreSQL needed)
 - **Libraries:** `money`, `period` (+ goal helpers), `crypto` (AES-GCM), `audit`,
   `http-error`
 - **Providers (FR4/FR5 boundary):** sandbox `payment`, `screentime`, `calendar`,
