@@ -66,6 +66,7 @@ function ProfileSection() {
   const { user, setUser } = useAuth();
   const [name, setName] = useState(user?.name ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
+  const [momo, setMomo] = useState(user?.momoMsisdn ?? '');
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -76,7 +77,15 @@ function ProfileSection() {
     setErr(null);
     setBusy(true);
     try {
-      const { user: updated } = await api.auth.updateProfile({ name, email });
+      // Only send momoMsisdn when it actually changed — every send is audited as a
+      // link/unlink, and an untouched blank field must not log an unlink each save.
+      const trimmed = momo.trim();
+      const changed = trimmed !== (user?.momoMsisdn ?? '');
+      const { user: updated } = await api.auth.updateProfile({
+        name,
+        email,
+        ...(changed && { momoMsisdn: trimmed === '' ? null : trimmed }),
+      });
       setUser(updated);
       setMsg('Profile updated.');
     } catch (e2) {
@@ -96,6 +105,19 @@ function ProfileSection() {
         </Field>
         <Field label="Email">
           <Input type="email" value={email} required onChange={(e) => setEmail(e.target.value)} />
+        </Field>
+        <Field label="MTN MoMo number (optional)">
+          <Input
+            value={momo}
+            inputMode="numeric"
+            pattern="\d{6,15}"
+            placeholder="250788123456"
+            onChange={(e) => setMomo(e.target.value)}
+          />
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            International format, digits only. Linking lets SMART LIFE check your wallet
+            with MTN before a payment. Leave blank to unlink.
+          </p>
         </Field>
         <Button type="submit" disabled={busy}>
           {busy ? 'Saving…' : 'Save profile'}

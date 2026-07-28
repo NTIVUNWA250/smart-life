@@ -82,6 +82,11 @@ authRouter.patch(
     const input = updateProfileSchema.parse(req.body);
     const user = await authService.updateProfile(req.user!.id, input);
     await audit('auth.profile.updated', user.id);
+    // Linking a payment identity is money-relevant, so it gets its own trail (NFR4).
+    // The number itself is deliberately not written to the audit detail.
+    if (input.momoMsisdn !== undefined) {
+      await audit(input.momoMsisdn === null ? 'auth.momo.unlinked' : 'auth.momo.linked', user.id);
+    }
     res.json({ user });
   }),
 );

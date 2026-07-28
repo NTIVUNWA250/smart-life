@@ -34,15 +34,23 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
-// Settings: update profile (name/email). At least one field required.
+// Settings: update profile (name/email/MoMo wallet). At least one field required.
 export const updateProfileSchema = z
   .object({
     name: z.string().min(2).max(80).optional(),
     email: z.string().email().optional(),
+    // MTN expects a bare international MSISDN — digits only, no '+' or spaces
+    // (Rwanda: 2507XXXXXXXX). Explicit null unlinks the wallet.
+    momoMsisdn: z
+      .string()
+      .regex(/^\d{6,15}$/, 'Enter the number in international format, digits only (e.g. 250788123456)')
+      .nullable()
+      .optional(),
   })
-  .refine((v) => v.name !== undefined || v.email !== undefined, {
-    message: 'Provide a name or email to update',
-  });
+  .refine(
+    (v) => v.name !== undefined || v.email !== undefined || v.momoMsisdn !== undefined,
+    { message: 'Provide a name, email or MoMo number to update' },
+  );
 
 // Settings: change password (requires the current one).
 export const changePasswordSchema = z.object({

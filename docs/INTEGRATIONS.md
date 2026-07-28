@@ -14,16 +14,53 @@ seam to plug in production APIs once partnerships/credentials exist.
 
 Interface: `PaymentProvider { block(userId), unblock(userId), status(userId) }`
 
-| Provider     | Live API                          | Status            |
-| ------------ | --------------------------------- | ----------------- |
-| MTN MoMo     | MTN MoMo Open API                 | sandbox stub      |
-| Airtel Money | Airtel Africa API                 | sandbox stub      |
-| Bank         | Bank-specific API (per partner)   | sandbox stub      |
+| Provider     | Live API                          | Status                                              |
+| ------------ | --------------------------------- | --------------------------------------------------- |
+| MTN MoMo     | MTN MoMo Open API (Collections)   | **live adapter** — `providers/live/payment.momo.ts` |
+| Airtel Money | Airtel Africa API                 | sandbox stub                                        |
+| Bank         | Bank-specific API (per partner)   | sandbox stub                                        |
 
 > Real mobile-money APIs do **not** expose a generic "freeze this user's wallet"
 > primitive. In `live` mode, blocking is approximated by withholding payment
 > authorisation / disabling outbound transfers initiated through SMART LIFE. The exact
 > capability depends on each partner agreement — documented per adapter.
+
+### MTN MoMo setup
+
+```bash
+# 1. Subscribe to "Collections" at https://momodeveloper.mtn.com, copy the Primary Key
+# 2. backend/.env:  MOMO_SUBSCRIPTION_KEY=<primary key>
+cd backend && npm run momo:provision   # creates a sandbox API user + key, then verifies both
+# 3. Paste the printed MOMO_API_USER / MOMO_API_KEY into .env and set PROVIDER_MODE=live
+```
+
+`momo:provision` refuses to run unless `MOMO_TARGET_ENVIRONMENT=sandbox`: the
+apiuser/apikey endpoints exist only on the sandbox host, and production credentials
+are issued by MTN during onboarding.
+
+**What the adapter actually does.** MTN cannot freeze a wallet, so `block`/`unblock`
+remain a SMART LIFE decision held in memory, exactly as in the stub — and, as before,
+`limits.checkPayment` is the real enforcement. What MTN *can* answer is whether an
+MSISDN is a live account holder, so `authorize` calls
+`GET /collection/v1_0/accountholder/msisdn/{msisdn}/active` and refuses payments
+aimed at an unknown or inactive wallet. The OAuth token from `POST /collection/token/`
+is cached until 60s before expiry and dropped on a 401.
+
+**Failure policy: fail open.** If MTN is unreachable or answers 5xx, `authorize`
+allows the payment and logs `payment.momo.unreachable`. The budget rules have already
+been applied server-side by then, so failing closed would only mean an MTN outage
+stops students recording spending they genuinely made. A 404 is a *verdict*, not a
+failure, and does refuse.
+
+**Linking a wallet.** `PATCH /api/v1/auth/me` accepts `momoMsisdn` (digits only, in
+international format, e.g. `250788123456`; explicit `null` unlinks). It is stored
+AES-GCM encrypted in `User.momoMsisdnEnc` (NFR7) and audited as `auth.momo.linked` /
+`auth.momo.unlinked` — without recording the number itself. A user with no linked
+wallet is never sent to MTN at all.
+
+**Sandbox caveats.** MTN's sandbox reports the Collections balance in **EUR**, not
+RWF, and its test account holders are not real subscribers — so the sandbox proves the
+integration works, not that any particular Rwandan number behaves this way.
 
 ## Screen-time provider
 

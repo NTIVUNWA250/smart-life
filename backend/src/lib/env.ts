@@ -33,6 +33,20 @@ export const env = {
   ),
 
   providerMode: optional('PROVIDER_MODE', 'sandbox') as 'sandbox' | 'live',
+
+  // MTN MoMo Open API. Only read when PROVIDER_MODE=live; the defaults point at
+  // MTN's sandbox host, so nothing here can reach production by accident.
+  // Credentials are not `required()` — a missing one degrades that single channel
+  // to the sandbox stub rather than stopping the server from booting.
+  momo: {
+    baseUrl: optional('MOMO_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),
+    subscriptionKey: optional('MOMO_SUBSCRIPTION_KEY', ''),
+    apiUser: optional('MOMO_API_USER', ''),
+    apiKey: optional('MOMO_API_KEY', ''),
+    targetEnvironment: optional('MOMO_TARGET_ENVIRONMENT', 'sandbox'),
+    callbackHost: optional('MOMO_CALLBACK_HOST', 'example.com'),
+    timeoutMs: Number(optional('MOMO_TIMEOUT_MS', '10000')),
+  },
 } as const;
 
 export const isProd = env.nodeEnv === 'production';

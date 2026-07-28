@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 import type { Role, User } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { env } from '../../lib/env.js';
-import { sha256 } from '../../lib/crypto.js';
+import { decryptField, encryptField, sha256 } from '../../lib/crypto.js';
+import { logger } from '../../lib/logger.js';
 import { conflict, unauthorized } from '../../lib/http-error.js';
 import { createProfile } from '../finance/finance.service.js';
 import type {
@@ -25,10 +26,30 @@ export interface PublicUser {
   email: string;
   role: Role;
   isMinor: boolean;
+  /** Linked MTN MoMo number, or null. It is the user's own, so it is not masked. */
+  momoMsisdn: string | null;
 }
 
 export function toPublicUser(u: User): PublicUser {
-  return { id: u.id, name: u.name, email: u.email, role: u.role, isMinor: u.isMinor };
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role: u.role,
+    isMinor: u.isMinor,
+    momoMsisdn: readMsisdn(u),
+  };
+}
+
+/** A rotated or wrong FIELD_ENCRYPTION_KEY must not make login fail outright. */
+function readMsisdn(u: User): string | null {
+  if (!u.momoMsisdnEnc) return null;
+  try {
+    return decryptField(u.momoMsisdnEnc);
+  } catch (err) {
+    logger.error('auth.msisdn_decrypt_failed', { userId: u.id, err: String(err) });
+    return null;
+  }
 }
 
 function signAccessToken(user: Pick<User, 'id' | 'role'>): string {
@@ -134,7 +155,14 @@ export async function updateProfile(
   }
   const user = await prisma.user.update({
     where: { id: userId },
-    data: { name: input.name, email: input.email },
+    data: {
+      name: input.name,
+      email: input.email,
+      // `undefined` leaves the wallet alone; explicit `null` unlinks it.
+      ...(input.momoMsisdn !== undefined && {
+        momoMsisdnEnc: input.momoMsisdn === null ? null : encryptField(input.momoMsisdn),
+      }),
+    },
   });
   return toPublicUser(user);
 }

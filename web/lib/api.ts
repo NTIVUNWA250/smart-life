@@ -181,7 +181,8 @@ export const api = {
         auth: false,
       }),
     me: () => request<{ user: User }>('/auth/me'),
-    updateProfile: (input: { name?: string; email?: string }) =>
+    // `momoMsisdn: null` unlinks the wallet; omitting the key leaves it untouched.
+    updateProfile: (input: { name?: string; email?: string; momoMsisdn?: string | null }) =>
       request<{ user: User }>('/auth/me', { method: 'PATCH', body: input }),
     changePassword: (currentPassword: string, newPassword: string) =>
       request<void>('/auth/change-password', {

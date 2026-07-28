@@ -8,6 +8,8 @@ export interface User {
   email: string;
   role: Role;
   isMinor: boolean;
+  /** Linked MTN MoMo number in international format, or null if no wallet is linked. */
+  momoMsisdn: string | null;
 }
 
 export interface AuthTokens {

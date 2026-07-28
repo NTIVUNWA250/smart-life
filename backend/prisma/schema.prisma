@@ -80,6 +80,9 @@ model User {
   passwordHash String
   role         Role     @default(student)
   isMinor      Boolean  @default(false)
+  // MoMo MSISDN for the MTN Open API, AES-GCM encrypted at rest (NFR7). Null until
+  // the user links a wallet; without it MTN has no account to be asked about.
+  momoMsisdnEnc String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
