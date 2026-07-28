@@ -107,7 +107,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 md:pb-8">{children}</main>
 
-        <footer className="mx-auto hidden w-full max-w-5xl justify-end px-4 pb-6 md:flex">
+        {/* One credit per screen. The rail carries it wherever the rail exists,
+            so this only appears on phones, where there is no rail. */}
+        <footer className="mx-auto flex w-full max-w-5xl justify-center px-4 pb-24 md:hidden">
           <span className="vux-credit">
             <VuxMark size={13} />
             Made by Vux · {year}
