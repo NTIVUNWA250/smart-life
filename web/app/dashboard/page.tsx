@@ -14,6 +14,7 @@ import {
   Spinner,
 } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
+import { useVuxPageWash } from '@/components/vux/useVuxWash';
 import { errorMessage } from '@/lib/errors';
 import { clampPct, formatDate, formatMinutes, formatRwf } from '@/lib/format';
 import type {
@@ -226,6 +227,7 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
   const [error, setError] = useState<string | null>(null);
   const [blocked, setBlocked] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const wash = useVuxPageWash();
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -242,14 +244,20 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
       setAmount('');
       setCategory('');
       setNote('');
+      wash('success');
       await onDone();
     } catch (err) {
       // FR4: the server refuses expenses that breach the daily/monthly limit.
       // That is an expected outcome with its own explanation, not a failure.
       if (err instanceof ApiError && err.status === 409) {
         setBlocked(err.message);
+        // The refusal is the one event worth washing the whole screen for: it
+        // changes what the user can do next. The alert below carries the actual
+        // message — the wash is skipped under prefers-reduced-motion.
+        wash('danger');
       } else {
         setError(errorMessage(err));
+        wash('danger');
       }
     } finally {
       setBusy(false);

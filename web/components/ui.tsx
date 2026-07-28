@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * SMART LIFE UI primitives, wearing VUX.
+ *
+ * The exported API is unchanged, so no page needed editing — the retrofit
+ * happens here and propagates. Colour now comes from `design-system/vux.css`
+ * custom properties rather than hard-coded Tailwind palette steps, which is
+ * what lets a single `data-product` on <html> re-skin the whole app.
+ */
+
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -8,6 +17,8 @@ import type {
 } from 'react';
 import { clampPct } from '@/lib/format';
 
+/* Hairlines, not shadows: depth comes from the surface tint, which the ground
+   formula supplies in both themes. */
 export function Card({
   title,
   children,
@@ -19,22 +30,26 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
+      className={`rounded border border-hairline bg-surface p-5 ${className}`}
     >
-      {title && (
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          {title}
-        </h2>
-      )}
+      {title && <h2 className="vux-label mb-4">{title}</h2>}
       {children}
     </section>
   );
 }
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'danger';
+  /** `primary` notches; everything else is a plain hairline. */
+  variant?: 'primary' | 'secondary' | 'danger' | 'success';
 };
 
+/**
+ * One button, two border treatments. Notch is reserved for the action that
+ * commits — one per screen. If two actions both look primary, neither is.
+ *
+ * The colour is the action's state, not decoration: a Deny wears danger so the
+ * button says what it does before the label is read.
+ */
 export function Button({
   variant = 'primary',
   className = '',
@@ -42,54 +57,42 @@ export function Button({
   children,
   ...rest
 }: ButtonProps) {
-  const styles: Record<NonNullable<ButtonProps['variant']>, string> = {
-    primary: 'bg-brand-500 text-white hover:bg-brand-600',
-    secondary:
-      'bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
+  const tone: Record<NonNullable<ButtonProps['variant']>, string> = {
+    primary: 'vux-brand-tone',
+    secondary: 'vux-neutral',
+    danger: 'vux-danger',
+    success: 'vux-success',
   };
+  const treatment = variant === 'primary' ? 'vux-btn--notch' : 'vux-btn--plain';
   return (
     <button
       {...rest}
       disabled={disabled}
-      className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${styles[variant]} ${className}`}
+      className={`vux-btn ${treatment} ${tone[variant]} inline-flex items-center justify-center gap-2 ${className}`}
     >
       {children}
     </button>
   );
 }
 
-export function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block text-sm">
-      <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">{label}</span>
+    <label className="block text-xs">
+      <span className="mb-1 block font-semibold text-ink">{label}</span>
       {children}
     </label>
   );
 }
 
+const CONTROL =
+  'w-full rounded border border-hairline bg-surface px-3 py-2 text-xs text-ink outline-none transition-hover ease-vux focus:border-brand';
+
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-brand-500/30 ${props.className ?? ''}`}
-    />
-  );
+  return <input {...props} className={`${CONTROL} ${props.className ?? ''}`} />;
 }
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select
-      {...props}
-      className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-brand-500/30 ${props.className ?? ''}`}
-    />
-  );
+  return <select {...props} className={`${CONTROL} ${props.className ?? ''}`} />;
 }
 
 export function ProgressBar({
@@ -100,70 +103,100 @@ export function ProgressBar({
   tone?: 'brand' | 'danger' | 'success';
 }) {
   const pct = clampPct(value);
-  const colors: Record<typeof tone, string> = {
-    brand: 'bg-brand-500',
-    danger: 'bg-red-500',
-    success: 'bg-emerald-500',
+  const fill: Record<typeof tone, string> = {
+    brand: 'var(--vux-brand)',
+    danger: 'var(--vux-danger-fill)',
+    success: 'var(--vux-success-fill)',
   };
   return (
-    <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+    <div
+      className="h-2 w-full overflow-hidden rounded-sm"
+      style={{ background: 'var(--vux-neutral-tint)' }}
+      role="progressbar"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
       <div
-        className={`h-full rounded-full transition-all ${colors[tone]}`}
-        style={{ width: `${pct}%` }}
+        className="h-full transition-hover ease-vux"
+        style={{ width: `${pct}%`, background: fill[tone] }}
       />
     </div>
   );
 }
 
+/* Glyphs, not emoji: they are text, so they take the tone colour and render
+   identically on every platform. */
+const ALERT_GLYPH = {
+  error: '✕',
+  warning: '△',
+  info: 'ⓘ',
+  success: '✓',
+  neutral: '⊗',
+} as const;
+
+const ALERT_TONE = {
+  error: 'vux-danger',
+  warning: 'vux-attention',
+  info: 'vux-info',
+  success: 'vux-success',
+  neutral: 'vux-neutral',
+} as const;
+
 export function Alert({
   tone = 'error',
   children,
 }: {
-  tone?: 'error' | 'warning' | 'info' | 'success';
+  tone?: keyof typeof ALERT_TONE;
   children: ReactNode;
 }) {
-  const styles: Record<typeof tone, string> = {
-    error: 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200',
-    warning:
-      'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200',
-    info: 'border-brand-100 bg-brand-50 text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200',
-    success:
-      'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200',
-  };
   return (
-    <div className={`rounded-lg border px-4 py-3 text-sm ${styles[tone]}`}>
-      {children}
+    <div
+      className={`${ALERT_TONE[tone]} flex items-start gap-2.5 rounded border px-3.5 py-2.5 text-xs`}
+      style={{
+        background: 'var(--vux-tone-tint)',
+        color: 'var(--vux-tone-text)',
+        borderColor: 'color-mix(in srgb, var(--vux-tone-text) 28%, transparent)',
+      }}
+      role={tone === 'error' ? 'alert' : undefined}
+    >
+      <span aria-hidden="true" className="mt-px text-base leading-none">
+        {ALERT_GLYPH[tone]}
+      </span>
+      <span>{children}</span>
     </div>
   );
 }
+
+const BADGE_TONE = {
+  slate: 'vux-neutral',
+  green: 'vux-success',
+  red: 'vux-danger',
+  amber: 'vux-attention',
+  blue: 'vux-info',
+} as const;
 
 export function Badge({
   children,
   tone = 'slate',
 }: {
   children: ReactNode;
-  tone?: 'slate' | 'green' | 'red' | 'amber' | 'blue';
+  tone?: keyof typeof BADGE_TONE;
 }) {
-  const styles: Record<typeof tone, string> = {
-    slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-    green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-    red: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
-    amber: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300',
-    blue: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-200',
-  };
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[tone]}`}
-    >
-      {children}
-    </span>
-  );
+  return <span className={`vux-chip ${BADGE_TONE[tone]}`}>{children}</span>;
 }
 
+/** Loading wears the product's colour — the one state that should. */
 export function Spinner({ label }: { label?: string }) {
   return (
-    <div className="flex items-center gap-3 text-sm text-slate-500">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-brand-500" />
+    <div className="flex items-center gap-3 text-xs text-muted">
+      <span
+        className="h-4 w-4 animate-spin rounded-full border-2"
+        style={{
+          borderColor: 'var(--vux-hairline)',
+          borderTopColor: 'var(--vux-brand)',
+        }}
+      />
       {label ?? 'Loading…'}
     </div>
   );

@@ -1,3 +1,8 @@
+/* VUX design system. Lives at ../../design-system so every product shares one
+   copy; Next reaches it via experimental.externalDir. Must come first —
+   @import has to precede every other rule in a CSS file. */
+@import '../../design-system/vux.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,5 +16,27 @@ html.dark {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  background: var(--vux-paper);
+  color: var(--vux-ink);
+  font-family: var(--vux-font-body);
+  font-size: var(--vux-text-sm);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--vux-dur-theme) var(--vux-ease),
+              color var(--vux-dur-theme) var(--vux-ease);
+}
+
+/* Headings take the display face everywhere, so no page has to remember to. */
+h1,
+h2,
+h3 {
+  font-family: var(--vux-font-display);
+  letter-spacing: var(--vux-display-track);
+  text-wrap: balance;
+}
+
+/* This is a money app: digits line up in a column on nearly every screen. */
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
