@@ -79,6 +79,9 @@ export interface FinanceProfile {
   unexpectedPct: number;
   savingsPct: number;
   expenseFrequency: Frequency;
+  heavyExpenseRwf: number;
+  heavyExpenseDay: number;
+  weekendBoostPct: number;
   lastEditedAt: string;
 }
 
@@ -101,9 +104,31 @@ export interface BudgetModelOption {
   selectable: boolean;
 }
 
+export interface DailyBudget {
+  distributableRwf: number;
+  weekdayLimitRwf: number;
+  weekendLimitRwf: number;
+  weekendBoostPct: number;
+  todayLimitRwf: number;
+  todayIsWeekend: boolean;
+  heavyExpenseRwf: number;
+  heavyExpenseDay: number;
+  daysInMonth: number;
+  weekdays: number;
+  weekends: number;
+}
+
+export interface DailyStatus {
+  budget: DailyBudget;
+  allowanceRwf: number;
+  spentTodayRwf: number;
+  remainingRwf: number;
+}
+
 export interface FinanceResponse {
   profile: FinanceProfile | null;
   derived: FinanceDerived | null;
+  daily: DailyBudget | null;
   canEditNow: boolean;
   models: BudgetModelOption[];
 }
@@ -116,6 +141,9 @@ export interface FinanceInput {
   unexpectedPct: number;
   savingsPct: number;
   expenseFrequency?: Frequency;
+  heavyExpenseRwf?: number;
+  heavyExpenseDay?: number;
+  weekendBoostPct?: number;
 }
 
 export interface ScreenTimePolicy {

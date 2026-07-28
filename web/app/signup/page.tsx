@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { errorMessage } from '@/lib/errors';
 import type { Frequency } from '@/lib/types';
-import { findModel, toMonthly, suggestBudgetClient, DEFAULT_MODEL_ID } from '@/lib/budget';
+import {
+  findModel,
+  toMonthly,
+  suggestBudgetClient,
+  DEFAULT_MODEL_ID,
+  DEFAULT_WEEKEND_BOOST_PCT,
+} from '@/lib/budget';
 import { Alert, Button, Card, Field, Input, Select, Spinner } from '@/components/ui';
 import { BudgetFields, isBudgetValid, type BudgetValue } from '@/components/BudgetFields';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -21,6 +27,9 @@ const DEFAULT_BUDGET: BudgetValue = (() => {
     unexpectedPct: m.unexpectedPct,
     savingsPct: m.savingsPct,
     expenseFrequency: 'monthly',
+    heavyExpenseRwf: 0,
+    heavyExpenseDay: 1,
+    weekendBoostPct: DEFAULT_WEEKEND_BOOST_PCT,
   };
 })();
 
@@ -72,6 +81,9 @@ export default function SignupPage() {
                 unexpectedPct: budget.unexpectedPct,
                 savingsPct: budget.savingsPct,
                 expenseFrequency: budget.expenseFrequency,
+                heavyExpenseRwf: budget.heavyExpenseRwf,
+                heavyExpenseDay: budget.heavyExpenseDay,
+                weekendBoostPct: budget.weekendBoostPct,
               }
             : undefined,
       });
@@ -101,7 +113,7 @@ export default function SignupPage() {
     );
   }
 
-  const budgetOk = isBudgetValid(budget);
+  const budgetOk = isBudgetValid(budget, monthlyIncome);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">

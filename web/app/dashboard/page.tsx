@@ -13,11 +13,12 @@ import {
   Select,
   Spinner,
 } from '@/components/ui';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { clampPct, formatDate, formatMinutes, formatRwf } from '@/lib/format';
 import type {
   AnalyticsSummary,
+  DailyStatus,
   Goal,
   ScreenTimePolicy,
   Transaction,
@@ -37,22 +38,25 @@ function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [policies, setPolicies] = useState<ScreenTimePolicy[]>([]);
+  const [daily, setDaily] = useState<DailyStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [s, t, g, p] = await Promise.all([
+      const [s, t, g, p, lim] = await Promise.all([
         api.analytics.summary(),
         api.transactions.list({ limit: 8 }),
         api.goals.list(),
         api.screentime.policies(),
+        api.limits.current(),
       ]);
       setSummary(s);
       setTransactions(t.items);
       setGoals(g.items);
       setPolicies(p.items);
+      setDaily(lim.daily);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -69,6 +73,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {daily && <DailyBudgetCard daily={daily} />}
       {summary && <SummaryCards summary={summary} />}
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -83,6 +88,70 @@ function Dashboard() {
 
       <ScreenTime policies={policies} onDone={load} />
     </div>
+  );
+}
+
+function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
+  const { budget, allowanceRwf, spentTodayRwf, remainingRwf } = daily;
+  const usedPct = allowanceRwf > 0 ? (spentTodayRwf / allowanceRwf) * 100 : 0;
+  // At exactly the allowance every further expense is already refused, so this
+  // matches the server's block condition rather than trailing it by one franc.
+  const over = spentTodayRwf >= allowanceRwf;
+  // Derived from the server's own numbers — the browser clock may disagree, and
+  // this card is only fetched on mount so it can outlive a UTC midnight.
+  const isHeavyDay = allowanceRwf > budget.todayLimitRwf;
+
+  return (
+    <Card title="Today's budget">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            {formatRwf(remainingRwf)}
+          </div>
+          <div className="mt-1 text-sm text-slate-500">
+            left of {formatRwf(allowanceRwf)} for today
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Badge tone={budget.todayIsWeekend ? 'green' : 'blue'}>
+            {budget.todayIsWeekend ? 'Weekend' : 'Weekday'} rate
+          </Badge>
+          {isHeavyDay && budget.heavyExpenseRwf > 0 && (
+            <Badge tone="amber">+{formatRwf(budget.heavyExpenseRwf)} rent day</Badge>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <ProgressBar value={clampPct(usedPct)} tone={over ? 'danger' : 'brand'} />
+      </div>
+      <div className="mt-1 text-sm text-slate-500">
+        {formatRwf(spentTodayRwf)} spent today
+      </div>
+
+      {over && (
+        <div className="mt-3">
+          <Alert tone="warning">
+            You are over today&apos;s budget. Further spending is blocked until tomorrow —
+            request a peer approval if you need an override.
+          </Alert>
+        </div>
+      )}
+
+      <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-500 sm:grid-cols-3">
+        <div>
+          Weekdays <span className="font-medium text-slate-700 dark:text-slate-200">{formatRwf(budget.weekdayLimitRwf)}</span>/day
+        </div>
+        <div>
+          Weekends <span className="font-medium text-slate-700 dark:text-slate-200">{formatRwf(budget.weekendLimitRwf)}</span>/day
+        </div>
+        {budget.heavyExpenseRwf > 0 && (
+          <div>
+            Rent <span className="font-medium text-slate-700 dark:text-slate-200">{formatRwf(budget.heavyExpenseRwf)}</span> on day {budget.heavyExpenseDay}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -155,11 +224,13 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
   const [category, setCategory] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setBlocked(null);
     setBusy(true);
     try {
       await api.transactions.create({
@@ -173,7 +244,13 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
       setNote('');
       await onDone();
     } catch (err) {
-      setError(errorMessage(err));
+      // FR4: the server refuses expenses that breach the daily/monthly limit.
+      // That is an expected outcome with its own explanation, not a failure.
+      if (err instanceof ApiError && err.status === 409) {
+        setBlocked(err.message);
+      } else {
+        setError(errorMessage(err));
+      }
     } finally {
       setBusy(false);
     }
@@ -183,6 +260,11 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
     <Card title="Add income / expense">
       <form onSubmit={submit} className="space-y-3">
         {error && <Alert tone="error">{error}</Alert>}
+        {blocked && (
+          <Alert tone="warning">
+            {blocked} Ask a peer or parent to approve an override if you need this expense.
+          </Alert>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Field label="Type">
             <Select value={type} onChange={(e) => setType(e.target.value as TransactionType)}>

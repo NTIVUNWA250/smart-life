@@ -13,6 +13,7 @@ import type {
   AuthResult,
   AuthTokens,
   BudgetSuggestion,
+  DailyStatus,
   FinanceInput,
   FinanceResponse,
   Frequency,
@@ -259,12 +260,15 @@ export const api = {
 
   // ---- Limits ------------------------------------------------------------
   limits: {
-    current: () => request<{ limit: SpendingLimit }>('/limits/current'),
+    current: () =>
+      request<{ limit: SpendingLimit; daily: DailyStatus | null }>('/limits/current'),
     check: (amountRwf: number) =>
-      request<{ allowed: boolean; reason?: string; limit: SpendingLimit }>(
-        '/limits/check',
-        { method: 'POST', body: { amountRwf } },
-      ),
+      request<{
+        allowed: boolean;
+        reason?: string;
+        limit: SpendingLimit;
+        daily: DailyStatus | null;
+      }>('/limits/check', { method: 'POST', body: { amountRwf } }),
     setUnexpectedIncome: (amountRwf: number) =>
       request<{ limit: SpendingLimit }>('/limits/unexpected-income', {
         method: 'PUT',

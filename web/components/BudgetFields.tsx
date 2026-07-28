@@ -7,6 +7,7 @@ import {
   BUDGET_MODELS,
   CUSTOM_MODEL_ID,
   deriveBudget,
+  deriveDailyPreview,
   findModel,
   fromMonthly,
   toMonthly,
@@ -20,6 +21,10 @@ export interface BudgetValue {
   unexpectedPct: number;
   savingsPct: number;
   expenseFrequency: Frequency;
+  /** Lump monthly expense (rent), paid on heavyExpenseDay and exempt from the daily limit. */
+  heavyExpenseRwf: number;
+  heavyExpenseDay: number;
+  weekendBoostPct: number;
 }
 
 /**
@@ -52,6 +57,12 @@ export function BudgetFields({
   const error = validateBudget(value);
   const effectiveIncome = monthlyIncomeRwf + extraIncomeRwf;
   const d = deriveBudget(effectiveIncome, 'monthly', value);
+  // The daily budget is derived from the saved profile only — the server's
+  // deriveDaily never sees this month's unexpected income — so preview it from
+  // base income, or we would promise a daily limit the server won't honour.
+  const base = deriveBudget(monthlyIncomeRwf, 'monthly', value);
+  const daily = deriveDailyPreview(base, value.heavyExpenseRwf, value.weekendBoostPct);
+  const heavyTooBig = value.heavyExpenseRwf > base.expectedExpensesRwf;
   const selectable = BUDGET_MODELS.filter((m) => m.selectable);
   const reference = BUDGET_MODELS.filter((m) => !m.selectable);
   const budgetedExpenseAmount = fromMonthly(
@@ -206,6 +217,58 @@ export function BudgetFields({
         <Row label="Auto savings goal / year" value={formatRwf(d.autoGoalTargetRwf)} />
       </div>
 
+      {/* ——— Daily spending budget ——— */}
+      <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Daily spending budget
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Big monthly expense">
+            <Input
+              type="number"
+              min={0}
+              disabled={disabled}
+              placeholder="e.g. rent"
+              value={value.heavyExpenseRwf}
+              onChange={(e) => onChange({ ...value, heavyExpenseRwf: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label="Paid on day">
+            <Input
+              type="number"
+              min={1}
+              max={28}
+              disabled={disabled}
+              value={value.heavyExpenseDay}
+              onChange={(e) => onChange({ ...value, heavyExpenseDay: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label="Weekend boost %">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              disabled={disabled}
+              value={value.weekendBoostPct}
+              onChange={(e) => onChange({ ...value, weekendBoostPct: Number(e.target.value) })}
+            />
+          </Field>
+        </div>
+
+        {heavyTooBig ? (
+          <Alert tone="warning">
+            Your big monthly expense exceeds your {formatRwf(d.expectedExpensesRwf)} expenses budget.
+          </Alert>
+        ) : (
+          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800/50">
+            <Row label="Rent-style lump (exempt)" value={formatRwf(daily.heavyExpenseRwf)} />
+            <Row label="Spread across the month" value={formatRwf(daily.distributableRwf)} />
+            <Row label="Weekday limit / day" value={formatRwf(daily.weekdayLimitRwf)} strong />
+            <Row label="Weekend limit / day" value={formatRwf(daily.weekendLimitRwf)} accent />
+          </div>
+        )}
+      </div>
+
       {/* ——— Expense fit check (secondary; doesn't change the budget) ——— */}
       <div className="rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-700">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -270,7 +333,16 @@ function Row({ label, value, strong, accent }: { label: string; value: string; s
   );
 }
 
-/** True when the value passes the client-side guardrails. */
-export function isBudgetValid(v: BudgetValue): boolean {
-  return validateBudget(v) === null;
+/** True when the value passes the client-side guardrails (mirrors the server rules). */
+export function isBudgetValid(v: BudgetValue, monthlyIncomeRwf = 0): boolean {
+  if (validateBudget(v) !== null) return false;
+  if (!Number.isInteger(v.heavyExpenseDay) || v.heavyExpenseDay < 1 || v.heavyExpenseDay > 28) {
+    return false;
+  }
+  if (!Number.isInteger(v.weekendBoostPct) || v.weekendBoostPct < 0 || v.weekendBoostPct > 100) {
+    return false;
+  }
+  if (v.heavyExpenseRwf < 0) return false;
+  const expected = Math.round((monthlyIncomeRwf * v.expectedPct) / 100);
+  return v.heavyExpenseRwf <= expected;
 }

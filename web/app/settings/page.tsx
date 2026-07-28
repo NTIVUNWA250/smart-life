@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
 import { formatDate, formatRwf } from '@/lib/format';
-import { findModel, toMonthly, DEFAULT_MODEL_ID } from '@/lib/budget';
+import { findModel, toMonthly, DEFAULT_MODEL_ID, DEFAULT_WEEKEND_BOOST_PCT } from '@/lib/budget';
 import type { Frequency, FinanceResponse, Goal } from '@/lib/types';
 
 const DEFAULT_BUDGET: BudgetValue = (() => {
@@ -20,6 +20,9 @@ const DEFAULT_BUDGET: BudgetValue = (() => {
     unexpectedPct: m.unexpectedPct,
     savingsPct: m.savingsPct,
     expenseFrequency: 'monthly',
+    heavyExpenseRwf: 0,
+    heavyExpenseDay: 1,
+    weekendBoostPct: DEFAULT_WEEKEND_BOOST_PCT,
   };
 })();
 
@@ -184,6 +187,9 @@ function BudgetSection() {
           unexpectedPct: res.profile.unexpectedPct,
           savingsPct: res.profile.savingsPct,
           expenseFrequency: res.profile.expenseFrequency,
+          heavyExpenseRwf: res.profile.heavyExpenseRwf,
+          heavyExpenseDay: res.profile.heavyExpenseDay,
+          weekendBoostPct: res.profile.weekendBoostPct,
         });
       }
     } catch (e) {
@@ -229,6 +235,9 @@ function BudgetSection() {
         unexpectedPct: budget.unexpectedPct,
         savingsPct: budget.savingsPct,
         expenseFrequency: budget.expenseFrequency,
+        heavyExpenseRwf: budget.heavyExpenseRwf,
+        heavyExpenseDay: budget.heavyExpenseDay,
+        weekendBoostPct: budget.weekendBoostPct,
       });
       setData(res);
       setMsg('Budget saved. Your spending limit and auto goal were updated.');
@@ -305,7 +314,7 @@ function BudgetSection() {
           }}
         />
 
-        <Button type="submit" disabled={busy || !canEdit || !isBudgetValid(budget)}>
+        <Button type="submit" disabled={busy || !canEdit || !isBudgetValid(budget, monthlyIncome)}>
           {busy ? 'Saving…' : 'Save budget'}
         </Button>
       </form>

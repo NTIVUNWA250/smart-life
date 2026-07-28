@@ -122,6 +122,55 @@ export interface BudgetDerived {
   autoGoalTargetRwf: number;
 }
 
+export const DEFAULT_WEEKEND_BOOST_PCT = 30;
+
+/** Calendar-day counts for the month containing `date` (UTC). */
+export function monthDayCounts(date: Date): { days: number; weekdays: number; weekends: number } {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const days = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  let weekends = 0;
+  for (let d = 1; d <= days; d++) {
+    const dow = new Date(Date.UTC(year, month, d)).getUTCDay();
+    if (dow === 0 || dow === 6) weekends++;
+  }
+  return { days, weekdays: days - weekends, weekends };
+}
+
+export interface DailyPreview {
+  distributableRwf: number;
+  weekdayLimitRwf: number;
+  weekendLimitRwf: number;
+  heavyExpenseRwf: number;
+}
+
+/**
+ * Client mirror of the backend daily split (finance.daily.ts): the heavy lump is
+ * carved out of expected expenses, the rest is spread with a weekend boost.
+ */
+export function deriveDailyPreview(
+  d: BudgetDerived,
+  heavyExpenseRwf: number,
+  weekendBoostPct: number,
+  now = new Date(),
+): DailyPreview {
+  const heavy = Math.max(0, Math.min(heavyExpenseRwf, d.expectedExpensesRwf));
+  const distributableRwf = Math.max(0, d.expectedExpensesRwf - heavy) + d.unexpectedRwf;
+  const { weekdays, weekends } = monthDayCounts(now);
+  const boost = 1 + Math.max(0, weekendBoostPct) / 100;
+  const denom = weekdays + boost * weekends;
+  if (denom <= 0 || distributableRwf <= 0) {
+    return { distributableRwf: 0, weekdayLimitRwf: 0, weekendLimitRwf: 0, heavyExpenseRwf: heavy };
+  }
+  const x = distributableRwf / denom;
+  return {
+    distributableRwf,
+    weekdayLimitRwf: Math.floor(x),
+    weekendLimitRwf: Math.floor(x * boost),
+    heavyExpenseRwf: heavy,
+  };
+}
+
 export function deriveBudget(
   incomeRwf: number,
   freq: Frequency,
