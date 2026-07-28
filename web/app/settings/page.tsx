@@ -30,7 +30,7 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
+        <h1 className="text-xl font-bold text-ink">Settings</h1>
         <div className="grid gap-6 md:grid-cols-2">
           <ProfileSection />
           <PasswordSection />
@@ -49,10 +49,10 @@ function AppearanceSection() {
     <Card title="Appearance & account">
       <div className="space-y-4">
         <div>
-          <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Theme</p>
+          <p className="mb-2 text-sm font-medium text-ink">Theme</p>
           <ThemeToggle />
         </div>
-        <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
+        <div className="border-t border-hairline pt-4">
           <Button variant="danger" onClick={() => void logout()}>
             Log out
           </Button>
@@ -114,7 +114,7 @@ function ProfileSection() {
             placeholder="250788123456"
             onChange={(e) => setMomo(e.target.value)}
           />
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-muted">
             International format, digits only. Linking lets SMART LIFE check your wallet
             with MTN before a payment. Leave blank to unlink.
           </p>
@@ -282,7 +282,7 @@ function BudgetSection() {
 
   return (
     <Card title="Budget & spending limit">
-      <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mb-3 text-sm text-muted">
         Your income and budget model set the auto savings goal and your monthly spending limit
         (income − the savings you reserve). Savings stays ≥ 30%. Editable once a month.
       </p>
@@ -341,11 +341,11 @@ function BudgetSection() {
         </Button>
       </form>
 
-      <div className="mt-5 border-t border-slate-200 pt-4 dark:border-slate-800">
-        <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="mt-5 border-t border-hairline pt-4">
+        <p className="mb-2 text-sm font-medium text-ink">
           Unexpected income this month
         </p>
-        <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mb-2 text-xs text-muted">
           Got extra money this month? Add it to raise this month&apos;s spendable limit and savings.
           It doesn&apos;t change your saved budget.
         </p>
@@ -399,12 +399,12 @@ function GoalsSection() {
   return (
     <Card title="Goals">
       {err && <Alert tone="error">{err}</Alert>}
-      <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mb-3 text-sm text-muted">
         Editing a goal&apos;s title, target or deadline needs approval (a parent for minors, a peer
         for adults) and is allowed once a month.
       </p>
       {goals.length === 0 ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">No goals yet.</p>
+        <p className="text-sm text-muted">No goals yet.</p>
       ) : (
         <ul className="space-y-4">
           {goals.map((g) => (
@@ -455,12 +455,12 @@ function GoalEditRow({ goal, onDone }: { goal: Goal; onDone: () => Promise<void>
   }
 
   return (
-    <li className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+    <li className="rounded border border-hairline p-3">
       <div className="flex items-center justify-between">
         <div>
-          <span className="font-medium text-slate-800 dark:text-slate-100">{goal.title}</span>
+          <span className="font-medium text-ink">{goal.title}</span>
           {goal.isAuto && <span className="ml-2"><Badge tone="blue">auto</Badge></span>}
-          <div className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-xs text-muted">
             {formatRwf(goal.targetRwf)} · due {formatDate(goal.deadline)}
           </div>
         </div>

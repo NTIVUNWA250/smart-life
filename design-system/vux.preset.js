@@ -17,7 +17,10 @@
 
 /** @type {import('tailwindcss').Config} */
 const preset = {
-  darkMode: ['class', '[data-theme="dark"]'],
+  // Both hooks, not one. The two-element ['class', sel] form REPLACES `.dark`
+  // with sel — which silently kills every `dark:` utility in an app that
+  // toggles a class. The selector strategy with a list matches either.
+  darkMode: ['selector', '.dark, [data-theme="dark"]'],
   theme: {
     extend: {
       colors: {

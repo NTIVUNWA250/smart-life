@@ -84,19 +84,19 @@ function IncomingApprovals({
   return (
     <Card title="Override requests for you to review">
       {pending.length === 0 ? (
-        <p className="text-sm text-slate-500">No pending override requests.</p>
+        <p className="text-sm text-muted">No pending override requests.</p>
       ) : (
         <ul className="space-y-3">
           {pending.map((a) => (
             <li
               key={a.id}
-              className="flex items-center justify-between rounded-lg border border-slate-100 p-3"
+              className="flex items-center justify-between rounded border border-hairline p-3"
             >
               <div>
-                <div className="text-sm font-medium text-slate-800">
+                <div className="text-sm font-medium text-ink">
                   {a.requester.name} · <Badge tone="blue">{a.kind}</Badge>
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-muted">
                   {a.reason ?? 'No reason given'} · {formatDate(a.createdAt)}
                 </div>
               </div>
@@ -143,17 +143,17 @@ function IncomingLinks({
   return (
     <Card title="People asking you to be their approver">
       {pending.length === 0 ? (
-        <p className="text-sm text-slate-500">No pending link requests.</p>
+        <p className="text-sm text-muted">No pending link requests.</p>
       ) : (
         <ul className="space-y-3">
           {pending.map((l) => (
             <li
               key={l.id}
-              className="flex items-center justify-between rounded-lg border border-slate-100 p-3"
+              className="flex items-center justify-between rounded border border-hairline p-3"
             >
               <div>
-                <div className="text-sm font-medium text-slate-800">{l.student.name}</div>
-                <div className="text-xs text-slate-500">
+                <div className="text-sm font-medium text-ink">{l.student.name}</div>
+                <div className="text-xs text-muted">
                   {l.student.email} · wants you as <strong>{l.relationship}</strong>
                 </div>
               </div>
@@ -235,14 +235,14 @@ function MyApprovers({
         </Button>
       </form>
       {links.length === 0 ? (
-        <p className="text-sm text-slate-500">You haven&apos;t linked any approvers yet.</p>
+        <p className="text-sm text-muted">You haven&apos;t linked any approvers yet.</p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {links.map((l) => (
             <li key={l.id} className="flex items-center justify-between py-2">
               <div>
-                <div className="text-sm font-medium text-slate-800">{l.approver.name}</div>
-                <div className="text-xs text-slate-500">
+                <div className="text-sm font-medium text-ink">{l.approver.name}</div>
+                <div className="text-xs text-muted">
                   {l.approver.email} · {l.relationship}
                 </div>
               </div>

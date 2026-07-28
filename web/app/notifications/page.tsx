@@ -77,7 +77,7 @@ function NotificationsView() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+        <h1 className="text-xl font-bold text-ink">
           Notifications {unread > 0 && <Badge tone="blue">{unread} new</Badge>}
         </h1>
         <div className="flex gap-2">
@@ -96,7 +96,7 @@ function NotificationsView() {
 
       {items.length === 0 ? (
         <Card>
-          <p className="text-sm text-slate-500 dark:text-slate-400">You&apos;re all caught up. 🎉</p>
+          <p className="text-sm text-muted">You&apos;re all caught up. ◉</p>
         </Card>
       ) : (
         <ul className="space-y-3">
@@ -104,7 +104,7 @@ function NotificationsView() {
             const isUnread = !read.has(n.id);
             return (
               <li key={n.id}>
-                <Card className={isUnread ? 'border-l-4 border-l-brand-500' : ''}>
+                <Card className={isUnread ? 'border-l-4 border-l-brand' : ''}>
                   <button
                     type="button"
                     onClick={() => persist(new Set(read).add(n.id))}
@@ -113,15 +113,15 @@ function NotificationsView() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge tone={TONE[n.type]}>{LABEL[n.type]}</Badge>
-                        <span className="font-medium text-slate-800 dark:text-slate-100">
+                        <span className="font-medium text-ink">
                           {n.title}
                         </span>
                       </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                      <span className="text-xs text-muted">
                         {formatDate(n.createdAt)}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{n.body}</p>
+                    <p className="mt-1 text-sm text-muted">{n.body}</p>
                   </button>
                 </Card>
               </li>

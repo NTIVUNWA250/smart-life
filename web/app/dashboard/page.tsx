@@ -106,10 +106,10 @@ function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
     <Card title="Today's budget">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+          <div className="text-3xl font-bold text-ink">
             {formatRwf(remainingRwf)}
           </div>
-          <div className="mt-1 text-sm text-slate-500">
+          <div className="mt-1 text-sm text-muted">
             left of {formatRwf(allowanceRwf)} for today
           </div>
         </div>
@@ -126,7 +126,7 @@ function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
       <div className="mt-3">
         <ProgressBar value={clampPct(usedPct)} tone={over ? 'danger' : 'brand'} />
       </div>
-      <div className="mt-1 text-sm text-slate-500">
+      <div className="mt-1 text-sm text-muted">
         {formatRwf(spentTodayRwf)} spent today
       </div>
 
@@ -139,16 +139,16 @@ function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-500 sm:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-muted sm:grid-cols-3">
         <div>
-          Weekdays <span className="font-medium text-slate-700 dark:text-slate-200">{formatRwf(budget.weekdayLimitRwf)}</span>/day
+          Weekdays <span className="font-medium text-ink">{formatRwf(budget.weekdayLimitRwf)}</span>/day
         </div>
         <div>
-          Weekends <span className="font-medium text-slate-700 dark:text-slate-200">{formatRwf(budget.weekendLimitRwf)}</span>/day
+          Weekends <span className="font-medium text-ink">{formatRwf(budget.weekendLimitRwf)}</span>/day
         </div>
         {budget.heavyExpenseRwf > 0 && (
           <div>
-            Rent <span className="font-medium text-slate-700 dark:text-slate-200">{formatRwf(budget.heavyExpenseRwf)}</span> on day {budget.heavyExpenseDay}
+            Rent <span className="font-medium text-ink">{formatRwf(budget.heavyExpenseRwf)}</span> on day {budget.heavyExpenseDay}
           </div>
         )}
       </div>
@@ -164,10 +164,10 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">
       <Card title="Spending this month">
-        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="text-2xl font-bold text-ink">
           {formatRwf(finance.spentRwf)}
         </div>
-        <div className="mt-1 text-sm text-slate-500">
+        <div className="mt-1 text-sm text-muted">
           of {formatRwf(finance.limitRwf)} limit
         </div>
         <div className="mt-3">
@@ -184,10 +184,10 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
       </Card>
 
       <Card title="Savings goals">
-        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="text-2xl font-bold text-ink">
           {formatRwf(savings.savedRwf)}
         </div>
-        <div className="mt-1 text-sm text-slate-500">
+        <div className="mt-1 text-sm text-muted">
           of {formatRwf(savings.targetRwf)} ({savings.progressPct}%)
         </div>
         <div className="mt-3">
@@ -200,17 +200,17 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
       </Card>
 
       <Card title="Screen time today">
-        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="text-2xl font-bold text-ink">
           {formatMinutes(time.totalUsedMin)}
         </div>
-        <div className="mt-1 text-sm text-slate-500">
+        <div className="mt-1 text-sm text-muted">
           of {formatMinutes(time.totalLimitMin)} allowed
         </div>
         <div className="mt-3">
           <ProgressBar value={timePct} tone={time.blocked.length ? 'danger' : 'brand'} />
         </div>
         {time.blocked.length > 0 && (
-          <div className="mt-3 text-xs text-slate-500">
+          <div className="mt-3 text-xs text-muted">
             Blocked: {time.blocked.join(', ')}
           </div>
         )}
@@ -395,19 +395,19 @@ function GoalsList({ goals, onDone }: { goals: Goal[]; onDone: () => Promise<voi
   return (
     <Card title="Your goals">
       {goals.length === 0 ? (
-        <p className="text-sm text-slate-500">No goals yet — create one to start saving.</p>
+        <p className="text-sm text-muted">No goals yet — create one to start saving.</p>
       ) : (
         <ul className="space-y-4">
           {goals.map((g) => (
             <li key={g.id}>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-slate-800 dark:text-slate-100">
+                <span className="font-medium text-ink">
                   {g.title}
                   {g.isAuto && <span className="ml-2"><Badge tone="blue">auto</Badge></span>}
                 </span>
                 <Badge tone={g.status === 'achieved' ? 'green' : 'slate'}>{g.status}</Badge>
               </div>
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-muted">
                 {formatRwf(g.savedRwf)} / {formatRwf(g.targetRwf)} · due {formatDate(g.deadline)}
               </div>
               <div className="mt-2">
@@ -455,24 +455,24 @@ function RecentTransactions({
   return (
     <Card title="Recent transactions">
       {transactions.length === 0 ? (
-        <p className="text-sm text-slate-500">No transactions yet.</p>
+        <p className="text-sm text-muted">No transactions yet.</p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {transactions.map((t) => (
             <li key={t.id} className="flex items-center justify-between py-2">
               <div>
-                <div className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                <div className="text-sm font-medium text-ink">
                   {t.category}
                   {t.note ? ` · ${t.note}` : ''}
                 </div>
-                <div className="text-xs text-slate-500">{formatDate(t.occurredAt)}</div>
+                <div className="text-xs text-muted">{formatDate(t.occurredAt)}</div>
               </div>
               <div className="flex items-center gap-3">
                 <span
                   className={
                     t.type === 'income'
-                      ? 'text-sm font-semibold text-emerald-600'
-                      : 'text-sm font-semibold text-red-600'
+                      ? 'text-sm font-semibold text-state-success'
+                      : 'text-sm font-semibold text-state-danger'
                   }
                 >
                   {t.type === 'income' ? '+' : '−'}
@@ -544,14 +544,14 @@ function ScreenTime({
         </Button>
       </form>
       {policies.length === 0 ? (
-        <p className="text-sm text-slate-500">No screen-time limits set.</p>
+        <p className="text-sm text-muted">No screen-time limits set.</p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {policies.map((p) => (
             <li key={p.id} className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{p.appOrSite}</span>
+              <span className="text-sm font-medium text-ink">{p.appOrSite}</span>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-muted">
                   {formatMinutes(p.usedMin)} / {formatMinutes(p.dailyLimitMin)}
                 </span>
                 {p.isBlocked && <Badge tone="red">blocked</Badge>}

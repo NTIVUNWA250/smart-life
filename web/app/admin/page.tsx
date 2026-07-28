@@ -72,7 +72,7 @@ function Admin() {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-hairline text-xs uppercase tracking-wide text-muted">
               <th className="py-2 pr-4">Name</th>
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Role</th>
@@ -82,9 +82,9 @@ function Admin() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-b border-slate-100">
-                <td className="py-2 pr-4 font-medium text-slate-800">{u.name}</td>
-                <td className="py-2 pr-4 text-slate-600">{u.email}</td>
+              <tr key={u.id} className="border-b border-hairline">
+                <td className="py-2 pr-4 font-medium text-ink">{u.name}</td>
+                <td className="py-2 pr-4 text-muted">{u.email}</td>
                 <td className="py-2 pr-4">
                   <Select
                     value={u.role}
@@ -98,9 +98,9 @@ function Admin() {
                   </Select>
                 </td>
                 <td className="py-2 pr-4">
-                  {u.isMinor ? <Badge tone="amber">minor</Badge> : <span className="text-slate-400">—</span>}
+                  {u.isMinor ? <Badge tone="amber">minor</Badge> : <span className="text-muted">—</span>}
                 </td>
-                <td className="py-2 pr-4 text-slate-500">{formatDate(u.createdAt)}</td>
+                <td className="py-2 pr-4 text-muted">{formatDate(u.createdAt)}</td>
               </tr>
             ))}
           </tbody>
@@ -184,12 +184,12 @@ function AuditLog() {
       {loading ? (
         <Spinner label="Loading audit log…" />
       ) : items.length === 0 ? (
-        <p className="text-sm text-slate-500">No audit entries yet.</p>
+        <p className="text-sm text-muted">No audit entries yet.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-hairline text-xs uppercase tracking-wide text-muted">
                 <th className="py-2 pr-4">When</th>
                 <th className="py-2 pr-4">Action</th>
                 <th className="py-2 pr-4">User</th>
@@ -198,13 +198,13 @@ function AuditLog() {
             </thead>
             <tbody>
               {items.map((e) => (
-                <tr key={e.id} className="border-b border-slate-100">
-                  <td className="py-2 pr-4 text-slate-500">{new Date(e.createdAt).toLocaleString()}</td>
+                <tr key={e.id} className="border-b border-hairline">
+                  <td className="py-2 pr-4 text-muted">{new Date(e.createdAt).toLocaleString()}</td>
                   <td className="py-2 pr-4">
                     <Badge tone="slate">{e.action}</Badge>
                   </td>
-                  <td className="py-2 pr-4 font-mono text-xs text-slate-600">{e.userId ?? '—'}</td>
-                  <td className="py-2 pr-4 text-slate-600">{e.detail ?? '—'}</td>
+                  <td className="py-2 pr-4 font-mono text-xs text-muted">{e.userId ?? '—'}</td>
+                  <td className="py-2 pr-4 text-muted">{e.detail ?? '—'}</td>
                 </tr>
               ))}
             </tbody>

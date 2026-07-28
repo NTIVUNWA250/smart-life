@@ -28,7 +28,7 @@ export interface BudgetValue {
 }
 
 /**
- * The percentage track is primary: a budget-model dropdown, a ✨ Suggest action,
+ * The percentage track is primary: a budget-model dropdown, a ✦ Suggest action,
  * and the three editable percentages (expected / unexpected / savings) with a live
  * RWF preview. Below it, an optional expense **fit check** lets the user state
  * their real expected expenses (in any cadence) to see whether they fit the
@@ -132,7 +132,7 @@ export function BudgetFields({
     } else {
       fit = {
         tone: 'warning',
-        msg: `⚠ ≈ ${statedPct}% — exceeds your ${totalExpensesPct}% total-expenses budget. Raise your expenses % or trim spending.`,
+        msg: `△ ≈ ${statedPct}% — exceeds your ${totalExpensesPct}% total-expenses budget. Raise your expenses % or trim spending.`,
       };
     }
   }
@@ -164,7 +164,7 @@ export function BudgetFields({
         </div>
         {onSuggest && (
           <Button type="button" variant="secondary" disabled={disabled || suggesting} onClick={() => void runSuggest()}>
-            {suggesting ? '…' : '✨ Suggest'}
+            {suggesting ? '…' : '✦ Suggest'}
           </Button>
         )}
       </div>
@@ -206,7 +206,7 @@ export function BudgetFields({
 
       {error && <Alert tone="warning">{error}</Alert>}
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/50">
+      <div className="rounded border border-hairline bg-paper p-3 text-sm">
         {extraIncomeRwf > 0 && (
           <Row label="Effective income (incl. unexpected)" value={formatRwf(effectiveIncome)} strong />
         )}
@@ -218,8 +218,8 @@ export function BudgetFields({
       </div>
 
       {/* ——— Daily spending budget ——— */}
-      <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <div className="rounded border border-hairline p-3">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
           Daily spending budget
         </p>
         <div className="grid grid-cols-3 gap-3">
@@ -260,7 +260,7 @@ export function BudgetFields({
             Your big monthly expense exceeds your {formatRwf(d.expectedExpensesRwf)} expenses budget.
           </Alert>
         ) : (
-          <div className="mt-2 rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800/50">
+          <div className="mt-2 rounded border border-hairline bg-paper p-3 text-sm">
             <Row label="Rent-style lump (exempt)" value={formatRwf(daily.heavyExpenseRwf)} />
             <Row label="Spread across the month" value={formatRwf(daily.distributableRwf)} />
             <Row label="Weekday limit / day" value={formatRwf(daily.weekdayLimitRwf)} strong />
@@ -270,8 +270,8 @@ export function BudgetFields({
       </div>
 
       {/* ——— Expense fit check (secondary; doesn't change the budget) ——— */}
-      <div className="rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-700">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <div className="rounded border border-dashed border-hairline p-3">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
           Check your real expenses
         </p>
         <div className="grid grid-cols-3 gap-3">
@@ -317,14 +317,14 @@ export function BudgetFields({
 function Row({ label, value, strong, accent }: { label: string; value: string; strong?: boolean; accent?: boolean }) {
   return (
     <div className="flex justify-between py-0.5">
-      <span className="text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-muted">{label}</span>
       <span
         className={
           accent
-            ? 'font-semibold text-brand-700 dark:text-brand-300'
+            ? 'font-semibold text-brand'
             : strong
-              ? 'font-semibold text-slate-900 dark:text-slate-100'
-              : 'font-medium text-slate-700 dark:text-slate-200'
+              ? 'font-semibold text-ink'
+              : 'font-medium text-ink'
         }
       >
         {value}

@@ -2,10 +2,17 @@
 
 import { useTheme, type Theme } from '@/lib/theme';
 
-const OPTIONS: { value: Theme; label: string; icon: string }[] = [
-  { value: 'light', label: 'Light', icon: '☀️' },
-  { value: 'dark', label: 'Dark', icon: '🌙' },
-  { value: 'system', label: 'System', icon: '💻' },
+/**
+ * Glyphs, not emoji — emoji are drawn by the operating system, so ☀️ and 🌙 are
+ * a different picture on every platform and cannot take your colour.
+ *
+ * The three read as one idea: an empty disc is light, a filled disc is dark, and
+ * the half disc follows whatever the machine is doing.
+ */
+const OPTIONS: { value: Theme; label: string; glyph: string }[] = [
+  { value: 'light', label: 'Light', glyph: '○' },
+  { value: 'dark', label: 'Dark', glyph: '●' },
+  { value: 'system', label: 'System', glyph: '◐' },
 ];
 
 /** Three-way Light / Dark / System theme switch. */
@@ -16,7 +23,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className={`inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900 ${className}`}
+      className={`inline-flex items-center gap-1 rounded border border-hairline bg-surface p-1 ${className}`}
     >
       {OPTIONS.map((opt) => {
         const active = theme === opt.value;
@@ -28,13 +35,14 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
             aria-checked={active}
             title={opt.label}
             onClick={() => setTheme(opt.value)}
-            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-              active
-                ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-100'
-                : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+            className={`vux-label inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 transition-hover ease-vux ${
+              active ? 'text-brand' : 'text-muted hover:text-ink'
             }`}
+            style={active ? { background: 'color-mix(in srgb, var(--vux-brand) 12%, transparent)' } : undefined}
           >
-            <span aria-hidden>{opt.icon}</span>
+            <span aria-hidden className="text-sm leading-none">
+              {opt.glyph}
+            </span>
             <span className="hidden sm:inline">{opt.label}</span>
           </button>
         );

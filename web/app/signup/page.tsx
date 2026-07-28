@@ -122,8 +122,8 @@ export default function SignupPage() {
       </div>
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300">SMART LIFE</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-2xl font-bold text-brand">SMART LIFE</h1>
+          <p className="text-sm text-muted">
             {step === 1 ? 'Create your account.' : 'Set up your monthly budget.'}
           </p>
         </div>
@@ -160,12 +160,12 @@ export default function SignupPage() {
                   <option value="approver">Peer / parent approver</option>
                 </Select>
               </Field>
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              <label className="flex items-center gap-2 text-sm text-ink">
                 <input
                   type="checkbox"
                   checked={isMinor}
                   onChange={(e) => setIsMinor(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300"
+                  className="h-4 w-4 rounded border-hairline"
                 />
                 I am a minor (goal edits need a parent&apos;s approval)
               </label>
@@ -177,9 +177,9 @@ export default function SignupPage() {
                   : 'Next: budget →'}
               </Button>
             </form>
-            <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-4 text-center text-sm text-muted">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-brand-600 hover:underline dark:text-brand-300">
+              <Link href="/login" className="font-medium text-brand hover:underline">
                 Sign in
               </Link>
             </p>
@@ -194,7 +194,7 @@ export default function SignupPage() {
               className="space-y-4"
             >
               {error && <Alert tone="error">{error}</Alert>}
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-muted">
                 Pick a budget model (or customise). Savings must stay at or above 30%. You can edit
                 this once a month.
               </p>

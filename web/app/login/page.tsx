@@ -49,8 +49,8 @@ export default function LoginPage() {
       </div>
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-brand-700 dark:text-brand-300">SMART LIFE</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Stop spending, start saving.</p>
+          <h1 className="text-2xl font-bold text-brand">SMART LIFE</h1>
+          <p className="text-sm text-muted">Stop spending, start saving.</p>
         </div>
         <Card title="Sign in">
           <form onSubmit={onSubmit} className="space-y-4">
@@ -77,9 +77,9 @@ export default function LoginPage() {
               {submitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-4 text-center text-sm text-muted">
             No account?{' '}
-            <Link href="/signup" className="font-medium text-brand-600 hover:underline dark:text-brand-300">
+            <Link href="/signup" className="font-medium text-brand hover:underline">
               Create one
             </Link>
           </p>

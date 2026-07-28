@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { Spinner } from './ui';
+import { VuxCredit } from './vux/VuxIcon';
 
 interface NavItem {
   href: string;
@@ -54,11 +55,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const items = NAV.filter((item) => !item.roles || item.roles.includes(user.role));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    // No `dark:` variants anywhere below. The VUX tokens already carry both
+    // themes, so a colour cannot be right in one mode and wrong in the other.
+    <div className="min-h-screen bg-paper">
+      <header className="border-b border-hairline bg-surface">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-lg font-bold text-brand-700 dark:text-brand-300">
+            <Link href="/dashboard" className="font-display text-lg font-semibold text-brand">
               SMART LIFE
             </Link>
             <nav className="flex items-center gap-1">
@@ -68,11 +71,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                      active
-                        ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-200'
-                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                    aria-current={active ? 'page' : undefined}
+                    className={`rounded px-3 py-1.5 text-xs font-semibold transition-hover ease-vux ${
+                      active ? 'text-brand' : 'text-muted hover:text-ink'
                     }`}
+                    style={
+                      active
+                        ? { background: 'color-mix(in srgb, var(--vux-brand) 12%, transparent)' }
+                        : undefined
+                    }
                   >
                     {item.label}
                   </Link>
@@ -81,12 +88,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="hidden text-right sm:block">
-            <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{user.name}</div>
-            <div className="text-xs capitalize text-slate-500 dark:text-slate-400">{user.role}</div>
+            <div className="text-xs font-semibold text-ink">{user.name}</div>
+            <div className="vux-label capitalize">{user.role}</div>
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <footer className="mx-auto flex max-w-5xl justify-end px-4 pb-6">
+        <VuxCredit />
+      </footer>
     </div>
   );
 }
