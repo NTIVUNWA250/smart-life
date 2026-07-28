@@ -231,6 +231,10 @@ model SpendingLimit {
   // Ad-hoc income received this month; boosts the effective income (and savings).
   unexpectedIncomeRwf Int @default(0)
   isBlocked   Boolean  @default(false)
+  // A peer/parent approval grants one over-limit expense (FR6). It is consumed by
+  // the next expense that would otherwise be refused, so unlike isBlocked it is
+  // never recomputed away.
+  overridePending Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

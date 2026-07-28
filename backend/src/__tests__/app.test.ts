@@ -16,7 +16,10 @@ beforeAll(async () => {
   // Import after env is in place (modules read env at load time).
   const { createApp } = await import('../app.js');
   app = createApp();
-}, 30_000);
+  // Generous timeout: pulling in the whole module graph (express, the generated
+  // Prisma client, every feature module) takes ~20s on a Windows-mounted or
+  // network filesystem, which overran the previous 30s budget.
+}, 120_000);
 
 describe('GET /health', () => {
   it('reports service status', async () => {

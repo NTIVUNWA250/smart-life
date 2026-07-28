@@ -61,6 +61,15 @@ export interface DailyBudget {
   weekends: number;
 }
 
+/**
+ * What may be spent on `now`'s day: the day's share, plus the heavy lump on the
+ * day it falls due (rent is exempt from the daily limit, so it needs headroom).
+ */
+export function todayAllowanceRwf(budget: DailyBudget, now: Date): number {
+  const isHeavyDay = now.getUTCDate() === budget.heavyExpenseDay;
+  return budget.todayLimitRwf + (isHeavyDay ? budget.heavyExpenseRwf : 0);
+}
+
 export function computeDailyBudget(params: {
   /** Expected expenses that recur daily = expected total − heavy lump. */
   dailyExpectedTotalRwf: number;

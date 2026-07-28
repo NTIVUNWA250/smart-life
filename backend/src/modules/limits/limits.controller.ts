@@ -10,7 +10,10 @@ limitsRouter.use(requireAuth);
 limitsRouter.get(
   '/current',
   asyncHandler(async (req, res) => {
-    res.json({ limit: await limits.getCurrentLimit(req.user!.id) });
+    res.json({
+      limit: await limits.getCurrentLimit(req.user!.id),
+      daily: await limits.getDailyStatus(req.user!.id),
+    });
   }),
 );
 

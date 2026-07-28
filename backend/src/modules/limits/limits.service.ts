@@ -1,10 +1,12 @@
 import type { SpendingLimit } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import { currentMonthPeriod, monthsUntil } from '../../lib/period.js';
+import { currentMonthPeriod, monthsUntil, startOfUtcDay } from '../../lib/period.js';
 import { blockAllPayments, providers, unblockAllPayments } from '../../providers/index.js';
 import { logger } from '../../lib/logger.js';
 import { audit } from '../../lib/audit.js';
-import { derive } from '../finance/finance.budget.js';
+import { derive, deriveDaily } from '../finance/finance.budget.js';
+import { formatRwf } from '../../lib/money.js';
+import { todayAllowanceRwf, type DailyBudget } from '../finance/finance.daily.js';
 
 /** Monthly RWF that active goals require, to hit each target by its deadline. */
 async function requiredGoalSavingsRwf(userId: string): Promise<number> {
@@ -63,9 +65,40 @@ async function computeSpentRwf(userId: string, periodStart: Date, periodEnd: Dat
   return spent._sum.amountRwf ?? 0;
 }
 
+export interface DailyStatus {
+  budget: DailyBudget;
+  /** Today's share plus the heavy lump when today is the heavy-expense day. */
+  allowanceRwf: number;
+  spentTodayRwf: number;
+  remainingRwf: number;
+}
+
+/** Today's daily budget and how much of it is already spent. Null without a profile. */
+export async function getDailyStatus(userId: string, now = new Date()): Promise<DailyStatus | null> {
+  const profile = await prisma.financeProfile.findUnique({ where: { userId } });
+  if (!profile) return null;
+
+  const budget = deriveDaily(profile, now);
+  const dayStart = startOfUtcDay(now);
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+  const spent = await prisma.transaction.aggregate({
+    _sum: { amountRwf: true },
+    where: { userId, type: 'expense', occurredAt: { gte: dayStart, lt: dayEnd } },
+  });
+
+  const allowanceRwf = todayAllowanceRwf(budget, now);
+  const spentTodayRwf = spent._sum.amountRwf ?? 0;
+  return {
+    budget,
+    allowanceRwf,
+    spentTodayRwf,
+    remainingRwf: Math.max(0, allowanceRwf - spentTodayRwf),
+  };
+}
+
 /** Recomputes the current-period limit, persists it, and enforces blocking. */
-export async function recomputeCurrentLimit(userId: string): Promise<SpendingLimit> {
-  const { start, end } = currentMonthPeriod();
+export async function recomputeCurrentLimit(userId: string, now = new Date()): Promise<SpendingLimit> {
+  const { start, end } = currentMonthPeriod(now);
 
   const existing = await prisma.spendingLimit.findFirst({
     where: { userId, periodStart: start },
@@ -131,31 +164,74 @@ export async function getCurrentLimit(userId: string): Promise<SpendingLimit> {
 export async function checkPayment(
   userId: string,
   amountRwf: number,
-): Promise<{ allowed: boolean; reason?: string; limit: SpendingLimit }> {
-  const limit = await recomputeCurrentLimit(userId);
-  if (limit.isBlocked) {
-    return { allowed: false, reason: 'Spending is currently blocked', limit };
+  now = new Date(),
+  /** Spend a pending approval override if one is needed. Only the call that
+   *  actually records the expense should consume it — a read-only check must not. */
+  consumeOverride = false,
+): Promise<{
+  allowed: boolean;
+  reason?: string;
+  limit: SpendingLimit;
+  daily: DailyStatus | null;
+  usedOverride?: boolean;
+}> {
+  const limit = await recomputeCurrentLimit(userId, now);
+  const daily = await getDailyStatus(userId, now);
+
+  const refusal = (): string | null => {
+    if (limit.isBlocked) return 'Spending is currently blocked.';
+    if (limit.spentRwf + amountRwf > limit.limitRwf) {
+      return 'Payment would exceed your monthly spending limit.';
+    }
+    if (daily && daily.spentTodayRwf + amountRwf > daily.allowanceRwf) {
+      return `Payment would exceed today's budget of ${formatRwf(daily.allowanceRwf)}.`;
+    }
+    return null;
+  };
+
+  const reason = refusal();
+  if (reason) {
+    // FR6: a peer/parent approval buys exactly one over-limit expense.
+    if (!limit.overridePending) return { allowed: false, reason, limit, daily };
+    if (consumeOverride) {
+      await prisma.spendingLimit.update({
+        where: { id: limit.id },
+        data: { overridePending: false, isBlocked: false },
+      });
+      await unblockAllPayments(userId);
+      await audit('limit.override.used', userId, `amount=${amountRwf} ${reason}`);
+    }
+    return { allowed: true, limit, daily, usedOverride: true };
   }
-  if (limit.spentRwf + amountRwf > limit.limitRwf) {
-    return { allowed: false, reason: 'Payment would exceed your spending limit', limit };
-  }
+
   // Confirm with the payment providers (any channel blocked => deny).
   const channelOk = await Promise.all(
     Object.values(providers.payment).map((p) => p.authorize(userId, amountRwf)),
   );
   if (channelOk.some((ok) => !ok)) {
-    return { allowed: false, reason: 'Payment channel is blocked', limit };
+    return { allowed: false, reason: 'Payment channel is blocked.', limit, daily };
   }
-  return { allowed: true, limit };
+  return { allowed: true, limit, daily };
 }
 
-/** Manually unblock (used after an approval is granted). */
+/**
+ * Manually unblock (used after an approval is granted). Clearing `isBlocked` alone
+ * would not survive the next recompute, which re-derives it from spend vs limit —
+ * so this also arms a one-time override for the expense the approval was for.
+ */
 export async function unblock(userId: string): Promise<SpendingLimit> {
   await unblockAllPayments(userId);
   const { start } = currentMonthPeriod();
   const existing = await prisma.spendingLimit.findFirst({ where: { userId, periodStart: start } });
   if (existing) {
-    return prisma.spendingLimit.update({ where: { id: existing.id }, data: { isBlocked: false } });
+    return prisma.spendingLimit.update({
+      where: { id: existing.id },
+      data: { isBlocked: false, overridePending: true },
+    });
   }
-  return recomputeCurrentLimit(userId);
+  const limit = await recomputeCurrentLimit(userId);
+  return prisma.spendingLimit.update({
+    where: { id: limit.id },
+    data: { isBlocked: false, overridePending: true },
+  });
 }

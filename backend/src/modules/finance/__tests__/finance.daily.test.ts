@@ -4,6 +4,7 @@ import {
   monthDayCounts,
   splitDailyLimits,
   isWeekend,
+  todayAllowanceRwf,
 } from '../finance.daily.js';
 
 describe('monthDayCounts', () => {
@@ -73,5 +74,35 @@ describe('computeDailyBudget', () => {
     });
     expect(b.todayIsWeekend).toBe(true);
     expect(b.todayLimitRwf).toBe(b.weekendLimitRwf);
+  });
+});
+
+describe('todayAllowanceRwf', () => {
+  const budget = (heavyExpenseDay: number, now: Date) =>
+    computeDailyBudget({
+      dailyExpectedTotalRwf: 60_000,
+      unexpectedRwf: 40_000,
+      heavyExpenseRwf: 90_000,
+      heavyExpenseDay,
+      weekendBoostPct: 30,
+      now,
+    });
+
+  it('is just the day share on an ordinary day', () => {
+    const now = new Date('2026-06-26T10:00:00Z'); // Fri the 26th
+    const b = budget(1, now);
+    expect(todayAllowanceRwf(b, now)).toBe(b.weekdayLimitRwf);
+  });
+
+  it('adds the heavy lump on the heavy-expense day', () => {
+    const now = new Date('2026-06-26T10:00:00Z'); // Fri the 26th
+    const b = budget(26, now);
+    expect(todayAllowanceRwf(b, now)).toBe(b.weekdayLimitRwf + 90_000);
+  });
+
+  it('adds the lump on top of the weekend limit when the heavy day is a weekend', () => {
+    const now = new Date('2026-06-27T10:00:00Z'); // Sat the 27th
+    const b = budget(27, now);
+    expect(todayAllowanceRwf(b, now)).toBe(b.weekendLimitRwf + 90_000);
   });
 });

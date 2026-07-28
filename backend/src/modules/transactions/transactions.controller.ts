@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { asyncHandler } from '../../middleware/async-handler.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { prisma } from '../../lib/prisma.js';
-import { notFound } from '../../lib/http-error.js';
-import { recomputeCurrentLimit } from '../limits/limits.service.js';
+import { conflict, notFound } from '../../lib/http-error.js';
+import { checkPayment, recomputeCurrentLimit } from '../limits/limits.service.js';
 
 export const transactionsRouter = Router();
 transactionsRouter.use(requireAuth);
@@ -39,6 +39,19 @@ transactionsRouter.post(
   '/',
   asyncHandler(async (req, res) => {
     const input = createSchema.parse(req.body);
+    const occurredAt = input.occurredAt ?? new Date();
+
+    // FR3/FR4: limits are server-authoritative, so an expense is checked here and
+    // not only in the client. Checked against the day it happened, so backdating
+    // is measured against that day's budget rather than today's.
+    if (input.type === 'expense') {
+      // This call records the expense, so it is the one allowed to spend an override.
+      const check = await checkPayment(req.user!.id, input.amountRwf, occurredAt, true);
+      if (!check.allowed) {
+        throw conflict(check.reason ?? 'This expense would exceed your spending limit.');
+      }
+    }
+
     const txn = await prisma.transaction.create({
       data: {
         userId: req.user!.id,
@@ -46,7 +59,7 @@ transactionsRouter.post(
         amountRwf: input.amountRwf,
         category: input.category ?? 'general',
         note: input.note,
-        occurredAt: input.occurredAt ?? new Date(),
+        occurredAt,
       },
     });
     // A new income/expense changes the user's limit and may trigger blocking.
