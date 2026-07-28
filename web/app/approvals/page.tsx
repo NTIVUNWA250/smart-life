@@ -237,7 +237,7 @@ function MyApprovers({
       {links.length === 0 ? (
         <p className="text-sm text-muted">You haven&apos;t linked any approvers yet.</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-hairline">
           {links.map((l) => (
             <li key={l.id} className="flex items-center justify-between py-2">
               <div>

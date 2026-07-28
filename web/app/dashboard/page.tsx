@@ -457,7 +457,7 @@ function RecentTransactions({
       {transactions.length === 0 ? (
         <p className="text-sm text-muted">No transactions yet.</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-hairline">
           {transactions.map((t) => (
             <li key={t.id} className="flex items-center justify-between py-2">
               <div>
@@ -546,7 +546,7 @@ function ScreenTime({
       {policies.length === 0 ? (
         <p className="text-sm text-muted">No screen-time limits set.</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-hairline">
           {policies.map((p) => (
             <li key={p.id} className="flex items-center justify-between py-2">
               <span className="text-sm font-medium text-ink">{p.appOrSite}</span>
