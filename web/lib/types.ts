@@ -148,10 +148,16 @@ export interface FinanceInput {
   weekendBoostPct?: number;
 }
 
+export type ScreenTargetKind = 'app' | 'url';
+
 export interface ScreenTimePolicy {
   id: string;
   userId: string;
+  /** An Android package name (kind=app) or a bare host (kind=url). */
   appOrSite: string;
+  kind: ScreenTargetKind;
+  /** Human-friendly name; falls back to appOrSite. */
+  label: string | null;
   dailyLimitMin: number;
   usedMin: number;
   isBlocked: boolean;

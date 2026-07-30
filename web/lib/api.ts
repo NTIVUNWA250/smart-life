@@ -25,6 +25,7 @@ import type {
   PeerLinks,
   PeerRelationship,
   Role,
+  ScreenTargetKind,
   ScreenTimePolicy,
   SpendingLimit,
   Transaction,
@@ -280,10 +281,18 @@ export const api = {
   // ---- Screen time -------------------------------------------------------
   screentime: {
     policies: () => request<{ items: ScreenTimePolicy[] }>('/screentime/policies'),
-    upsertPolicy: (appOrSite: string, dailyLimitMin: number) =>
+    // `kind` is sent explicitly. The server defaults it to 'url', and a URL
+    // target can never accumulate usage — the phone measures per-app foreground
+    // time and cannot see browser URLs.
+    upsertPolicy: (input: {
+      appOrSite: string;
+      dailyLimitMin: number;
+      kind: ScreenTargetKind;
+      label?: string;
+    }) =>
       request<{ policy: ScreenTimePolicy }>('/screentime/policies', {
         method: 'POST',
-        body: { appOrSite, dailyLimitMin },
+        body: input,
       }),
   },
 

@@ -14,6 +14,7 @@ import {
   Spinner,
 } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
+import { appLabel, BLOCKABLE_APPS } from '@/lib/apps';
 import { useVuxPageWash } from '@/components/vux/useVuxWash';
 import { errorMessage } from '@/lib/errors';
 import { clampPct, formatDate, formatMinutes, formatRwf } from '@/lib/format';
@@ -474,7 +475,7 @@ function ScreenTime({
   policies: ScreenTimePolicy[];
   onDone: () => Promise<void>;
 }) {
-  const [appOrSite, setAppOrSite] = useState('');
+  const [appId, setAppId] = useState(BLOCKABLE_APPS[0].id);
   const [limit, setLimit] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -482,8 +483,12 @@ function ScreenTime({
     e.preventDefault();
     setBusy(true);
     try {
-      await api.screentime.upsertPolicy(appOrSite, Number(limit));
-      setAppOrSite('');
+      await api.screentime.upsertPolicy({
+        appOrSite: appId,
+        dailyLimitMin: Number(limit),
+        kind: 'app',
+        label: BLOCKABLE_APPS.find((a) => a.id === appId)?.label,
+      });
       setLimit('');
       await onDone();
     } finally {
@@ -491,16 +496,22 @@ function ScreenTime({
     }
   }
 
+  // A limit is set here but measured on the phone: Android reports per-app
+  // foreground time through UsageStatsManager, and the browser has no equivalent.
+  // Saying so is better than showing 0m forever and looking broken.
+  const unmeasurable = policies.filter((p) => p.kind === 'url');
+
   return (
     <Card title="Screen-time limits">
       <form onSubmit={submit} className="mb-4 flex flex-wrap items-end gap-3">
-        <Field label="App or site">
-          <Input
-            required
-            placeholder="instagram"
-            value={appOrSite}
-            onChange={(e) => setAppOrSite(e.target.value)}
-          />
+        <Field label="App">
+          <Select value={appId} onChange={(e) => setAppId(e.target.value)}>
+            {BLOCKABLE_APPS.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.label}
+              </option>
+            ))}
+          </Select>
         </Field>
         <Field label="Daily limit (min)">
           <Input
@@ -516,22 +527,35 @@ function ScreenTime({
           {busy ? 'Saving…' : 'Set limit'}
         </Button>
       </form>
+      <p className="mb-4 text-xs text-muted">
+        Time is measured by the SMART LIFE app on your Android phone, so a limit set here
+        stays at 0m until you sign in there and grant usage access.
+      </p>
       {policies.length === 0 ? (
         <p className="text-sm text-muted">No screen-time limits set.</p>
       ) : (
         <ul className="divide-y divide-hairline">
           {policies.map((p) => (
             <li key={p.id} className="flex items-center justify-between py-2">
-              <span className="text-sm font-medium text-ink">{p.appOrSite}</span>
+              <span className="text-sm font-medium text-ink">
+                {appLabel(p.appOrSite, p.label)}
+              </span>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-muted">
                   {formatMinutes(p.usedMin)} / {formatMinutes(p.dailyLimitMin)}
                 </span>
+                {p.kind === 'url' && <Badge tone="amber">not measured</Badge>}
                 {p.isBlocked && <Badge tone="red">blocked</Badge>}
               </div>
             </li>
           ))}
         </ul>
+      )}
+      {unmeasurable.length > 0 && (
+        <p className="mt-3 text-xs text-muted">
+          Website limits can&apos;t be measured — the phone sees which app is open, not
+          which page a browser is on. Set a limit on the app instead.
+        </p>
       )}
     </Card>
   );
