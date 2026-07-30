@@ -72,15 +72,26 @@ async function main(): Promise<void> {
   const token = (await tokenRes.json()) as { access_token: string; expires_in: number };
   console.log(`  ✓ Access token obtained (expires in ${token.expires_in}s)`);
 
-  const balanceRes = await call('/collection/v1_0/account/balance', {
-    headers: {
-      ...keyHeader,
-      Authorization: `Bearer ${token.access_token}`,
-      'X-Target-Environment': targetEnvironment,
-    },
-  });
-  const balance = (await balanceRes.json()) as { availableBalance: string; currency: string };
-  console.log(`  ✓ Collections balance: ${balance.availableBalance} ${balance.currency}`);
+  // Balance is a diagnostic, not proof — the token above already establishes that
+  // the credentials work. MTN's sandbox returns 503 here intermittently, and
+  // treating that as fatal would discard a working API key that is printed
+  // nowhere else and cannot be read back. Warn and carry on.
+  try {
+    const balanceRes = await fetch(`${baseUrl}/collection/v1_0/account/balance`, {
+      headers: {
+        ...keyHeader,
+        Authorization: `Bearer ${token.access_token}`,
+        'X-Target-Environment': targetEnvironment,
+      },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!balanceRes.ok) throw new Error(`${balanceRes.status} ${balanceRes.statusText}`);
+    const balance = (await balanceRes.json()) as { availableBalance: string; currency: string };
+    console.log(`  ✓ Collections balance: ${balance.availableBalance} ${balance.currency}`);
+  } catch (err) {
+    console.log(`  ! Collections balance unavailable (${err instanceof Error ? err.message : String(err)})`);
+    console.log('    Sandbox flakiness, not a credential problem — the token above proves they work.');
+  }
 
   console.log('\nAdd these to backend/.env:\n');
   console.log(`MOMO_API_USER=${apiUser}`);
