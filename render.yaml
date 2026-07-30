@@ -1,0 +1,38 @@
+# Render blueprint for the SMART LIFE API.
+#
+# Render's free instances sleep after 15 minutes idle, so the first request
+# after a quiet spell waits 30–60s while the container wakes. Warm it before a
+# demo. The database is deliberately NOT defined here: Render's free Postgres
+# expires after 30 days, so DATABASE_URL points at Neon instead (see
+# docs/DEPLOYMENT.md).
+services:
+  - type: web
+    name: smartlife-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    # migrate deploy runs on every boot. It is idempotent — already-applied
+    # migrations are skipped — and free instances have no pre-deploy hook.
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PROVIDER_MODE
+        value: sandbox
+      # sync: false = set by hand in the Render dashboard, never in this file.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Not generateValue: the field encryption key must be exactly 64 hex
+      # chars, and losing it makes every stored MoMo number unreadable. Generate
+      # it once, paste it in, and keep a copy somewhere safe.
+      - key: FIELD_ENCRYPTION_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

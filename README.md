@@ -91,6 +91,7 @@ See each subdirectory's README for prerequisites and environment variables.
 - [docs/API.md](docs/API.md) — REST API reference
 - [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) — external provider adapters
 - [docs/REQUIREMENTS-TRACEABILITY.md](docs/REQUIREMENTS-TRACEABILITY.md) — SRS → code
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — free-tier hosting for web, API and Android
 
 ---
 
