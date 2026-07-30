@@ -46,3 +46,19 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+
+  # The web app is a static export, so it needs no server and no cold start.
+  # It lives here rather than on another host so the whole deployment is one
+  # blueprint and one account.
+  - type: web
+    name: smartlife-web
+    runtime: static
+    # Built from the repo root, not from web/: the VUX design system lives at
+    # design-system/ outside web/, and Next compiles it through externalDir.
+    buildCommand: npm ci --prefix web && npm run build --prefix web
+    staticPublishPath: ./web/out
+    envVars:
+      # Read at BUILD time and baked into the JavaScript. Changing it needs a
+      # rebuild, not just a restart. Set to the API service's public URL.
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
