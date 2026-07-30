@@ -13,6 +13,8 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.util.Calendar
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -24,12 +26,12 @@ import java.util.concurrent.TimeUnit
  * user cancels). Dart's [ScreenTimeNative.pickApp] consumes this.
  *
  * Package visibility: on Android 11+ (API 30) querying other apps requires a
- * `<queries>` declaration (added in AndroidManifest.xml) — or the sensitive
+ * `<queries>` declaration (added in AndroidManifest.xml) - or the sensitive
  * `QUERY_ALL_PACKAGES` permission for a full list. A launcher-intent query needs
  * only the `<queries>` entry, which is what the picker below uses.
  *
  * Usage (`usageFor`) reads `UsageStatsManager`. That needs the special
- * PACKAGE_USAGE_STATS access, which cannot be granted by a runtime dialog — the
+ * PACKAGE_USAGE_STATS access, which cannot be granted by a runtime dialog - the
  * user has to toggle it in Settings, so `hasUsageAccess` / `openUsageAccessSettings`
  * drive that hand-off from Dart.
  *
@@ -39,12 +41,26 @@ import java.util.concurrent.TimeUnit
 class MainActivity : FlutterActivity() {
     private val channelName = "smartlife/screentime"
 
+    /**
+     * Flutter dispatches MethodChannel calls on the platform (main) thread, and both
+     * of the calls below are slow binder IPC - `loadLabel` is one round-trip into the
+     * package manager *per installed app*, and `queryAndAggregateUsageStats` walks
+     * every usage event since midnight. Doing either inline blocked the UI thread
+     * long enough for Android to raise "isn't responding" (observed: 5044ms waiting
+     * on a MotionEvent, with the CPU almost idle - blocked, not busy).
+     *
+     * So the work runs here and only the reply goes back to the main thread, which
+     * is where MethodChannel.Result must be invoked.
+     */
+    private val work: ExecutorService = Executors.newSingleThreadExecutor()
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "pickApp" -> showAppPicker(result)
+                    // Cheap app-op lookups; they stay inline.
                     "hasUsageAccess" -> result.success(hasUsageAccess())
                     "openUsageAccessSettings" -> result.success(openUsageAccessSettings())
                     "usageFor" -> usageFor(call.argument<List<String>>("apps"), result)
@@ -53,9 +69,37 @@ class MainActivity : FlutterActivity() {
             }
     }
 
+    override fun onDestroy() {
+        work.shutdownNow()
+        super.onDestroy()
+    }
+
+    /**
+     * Replies on the main thread, dropping the reply if the activity is already gone -
+     * answering a dead engine would either crash or leak.
+     */
+    private fun replyOnMain(block: () -> Unit) {
+        runOnUiThread {
+            if (!isFinishing && !isDestroyed) block()
+        }
+    }
+
     /** Lists launchable apps and shows a picker; replies once with the choice or null. */
     private fun showAppPicker(result: MethodChannel.Result) {
-        val apps = launchableApps()
+        work.execute {
+            // As in usageFor: a throw on this thread would take the process down
+            // rather than reach Dart, so an empty list stands in and the picker
+            // falls back to ScreenTimeNative.commonApps.
+            val apps = try {
+                launchableApps()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            replyOnMain { showAppPickerDialog(apps, result) }
+        }
+    }
+
+    private fun showAppPickerDialog(apps: List<AppInfo>, result: MethodChannel.Result) {
         if (apps.isEmpty()) {
             result.success(null)
             return
@@ -116,7 +160,7 @@ class MainActivity : FlutterActivity() {
      * absent from the reply rather than reported as zero, so the caller can tell
      * "no usage measured" from "not measurable here".
      *
-     * The window starts at local midnight — that is the "today" the user sees on
+     * The window starts at local midnight - that is the "today" the user sees on
      * their phone.
      */
     private fun usageFor(apps: List<String>?, result: MethodChannel.Result) {
@@ -125,32 +169,48 @@ class MainActivity : FlutterActivity() {
             result.success(emptyMap<String, Int>())
             return
         }
-        if (!hasUsageAccess()) {
-            result.error("PERMISSION_DENIED", "Usage access has not been granted.", null)
-            return
-        }
 
-        val manager = getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-        if (manager == null) {
-            result.error("UNAVAILABLE", "UsageStatsManager is unavailable.", null)
-            return
-        }
+        work.execute {
+            if (!hasUsageAccess()) {
+                replyOnMain {
+                    result.error("PERMISSION_DENIED", "Usage access has not been granted.", null)
+                }
+                return@execute
+            }
 
-        val start = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-        val end = System.currentTimeMillis()
+            val manager = getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+            if (manager == null) {
+                replyOnMain {
+                    result.error("UNAVAILABLE", "UsageStatsManager is unavailable.", null)
+                }
+                return@execute
+            }
 
-        val stats = manager.queryAndAggregateUsageStats(start, end)
-        val usage = HashMap<String, Int>()
-        for (pkg in wanted) {
-            val totalMs = stats[pkg]?.totalTimeInForeground ?: continue
-            usage[pkg] = TimeUnit.MILLISECONDS.toMinutes(totalMs).toInt()
+            val start = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            val end = System.currentTimeMillis()
+
+            val usage = try {
+                val stats = manager.queryAndAggregateUsageStats(start, end)
+                HashMap<String, Int>().apply {
+                    for (pkg in wanted) {
+                        val totalMs = stats[pkg]?.totalTimeInForeground ?: continue
+                        put(pkg, TimeUnit.MILLISECONDS.toMinutes(totalMs).toInt())
+                    }
+                }
+            } catch (e: Exception) {
+                // Off the main thread an uncaught throw would kill the process rather
+                // than surface in Dart, so it is turned into a channel error instead.
+                replyOnMain { result.error("UNAVAILABLE", e.message ?: "Usage query failed.", null) }
+                return@execute
+            }
+
+            replyOnMain { result.success(usage) }
         }
-        result.success(usage)
     }
 
     private data class AppInfo(val packageName: String, val label: String)
