@@ -12,7 +12,11 @@ services:
     plan: free
     region: frankfurt
     rootDir: backend
-    buildCommand: npm ci && npm run build
+    # --include=dev is required, not stylistic. NODE_ENV=production below applies
+    # to the build as well as the runtime, and npm honours it by setting
+    # omit=dev, which drops typescript and the prisma CLI. Without this the
+    # build fails on "tsc: not found". start:prod needs the prisma CLI too.
+    buildCommand: npm ci --include=dev && npm run build
     # migrate deploy runs on every boot. It is idempotent - already-applied
     # migrations are skipped - and free instances have no pre-deploy hook.
     startCommand: npm run start:prod
