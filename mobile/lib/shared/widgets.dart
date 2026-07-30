@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// A centred error message with a retry button — used by async screens.
+/// A centred error message with a retry button - used by async screens.
 class ErrorRetry extends StatelessWidget {
   const ErrorRetry({super.key, required this.message, required this.onRetry});
 

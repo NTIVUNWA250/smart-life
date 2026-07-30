@@ -99,7 +99,7 @@ function Dashboard() {
 
 /**
  * A refusal is only useful if it says what to do next. Every place the server
- * turns spending down now points at the one screen that can lift it — previously
+ * turns spending down now points at the one screen that can lift it - previously
  * the message stopped at "blocked" and you had to already know the flow existed.
  */
 function RequestOverrideLink() {
@@ -122,7 +122,7 @@ function DailyBudgetCard({
   // At exactly the allowance every further expense is already refused, so this
   // matches the server's block condition rather than trailing it by one franc.
   const over = spentTodayRwf >= allowanceRwf;
-  // Derived from the server's own numbers — the browser clock may disagree, and
+  // Derived from the server's own numbers - the browser clock may disagree, and
   // this card is only fetched on mount so it can outlive a UTC midnight.
   const isHeavyDay = allowanceRwf > budget.todayLimitRwf;
 
@@ -167,7 +167,7 @@ function DailyBudgetCard({
       {over && !limit?.overridePending && (
         <div className="mt-3">
           <Alert tone="warning">
-            You are over today&apos;s budget. Further spending is blocked until tomorrow —{' '}
+            You are over today&apos;s budget. Further spending is blocked until tomorrow -{' '}
             <RequestOverrideLink />.
           </Alert>
         </div>
@@ -210,7 +210,7 @@ function SummaryCards({ summary }: { summary: AnalyticsSummary }) {
         {finance.isBlocked && (
           <div className="mt-3">
             <Alert tone="warning">
-              Spending is <strong>blocked</strong> — you have reached your limit.
+              Spending is <strong>blocked</strong> - you have reached your limit.
               Request a peer/parent approval to unblock.
             </Alert>
           </div>
@@ -287,7 +287,7 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
         setBlocked(err.message);
         // The refusal is the one event worth washing the whole screen for: it
         // changes what the user can do next. The alert below carries the actual
-        // message — the wash is skipped under prefers-reduced-motion.
+        // message - the wash is skipped under prefers-reduced-motion.
         wash('danger');
       } else {
         setError(errorMessage(err));
@@ -429,7 +429,7 @@ function GoalsList({ goals, onDone }: { goals: Goal[]; onDone: () => Promise<voi
   return (
     <Card title="Your goals">
       {goals.length === 0 ? (
-        <p className="text-sm text-muted">No goals yet — create one to start saving.</p>
+        <p className="text-sm text-muted">No goals yet - create one to start saving.</p>
       ) : (
         <ul className="space-y-4">
           {goals.map((g) => (
@@ -586,7 +586,7 @@ function ScreenTime({
       )}
       {unmeasurable.length > 0 && (
         <p className="mt-3 text-xs text-muted">
-          Website limits can&apos;t be measured — the phone sees which app is open, not
+          Website limits can&apos;t be measured - the phone sees which app is open, not
           which page a browser is on. Set a limit on the app instead.
         </p>
       )}

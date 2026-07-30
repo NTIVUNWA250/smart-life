@@ -19,11 +19,11 @@ Specification (SRS v1.0, Gilbert NTIVUNWA, ALU).
 | Layer              | Tech                                                        |
 | ------------------ | ----------------------------------------------------------- |
 | Backend / API      | Node.js + Express + TypeScript                              |
-| Database           | PostgreSQL (via Prisma ORM) — **no Supabase** (SRS §2.5)    |
+| Database           | PostgreSQL (via Prisma ORM) - **no Supabase** (SRS section 2.5)    |
 | Auth               | JWT access/refresh tokens, bcrypt password hashing          |
 | Website            | Next.js 15 (App Router) + TypeScript + Tailwind             |
 | Mobile (iOS/And)   | Flutter (Android v10+ / iOS)                                |
-| External providers | MTN MoMo, Airtel Money, Bank, OS screen-time, Google Calendar — behind an **adapter layer** with sandbox/mock implementations |
+| External providers | MTN MoMo, Airtel Money, Bank, OS screen-time, Google Calendar - behind an **adapter layer** with sandbox/mock implementations |
 
 > **Why mock the external providers?** Mobile-money, bank, and OS screen-time APIs
 > require commercial partnerships, signed agreements, and production credentials that
@@ -38,11 +38,11 @@ Specification (SRS v1.0, Gilbert NTIVUNWA, ALU).
 
 ```
 saving-app/
-├── backend/    Node.js + Express + Prisma API (PostgreSQL)
-├── web/        Next.js website — user + admin dashboards
-├── mobile/     Flutter app (Android + iOS) — primary user experience
-├── docs/       Architecture, data model, API, integrations, SRS traceability
-└── README.md   (this file)
++-- backend/    Node.js + Express + Prisma API (PostgreSQL)
++-- web/        Next.js website - user + admin dashboards
++-- mobile/     Flutter app (Android + iOS) - primary user experience
++-- docs/       Architecture, data model, API, integrations, SRS traceability
+`-- README.md   (this file)
 ```
 
 Each subdirectory has its own README with setup steps.
@@ -70,7 +70,7 @@ A full mapping of SRS requirement IDs (FR/NFR) to code lives in
 ## Quick start
 
 ```bash
-# 1. Backend (needs a local PostgreSQL — see backend/README.md)
+# 1. Backend (needs a local PostgreSQL - see backend/README.md)
 cd backend && npm install && npm run db:migrate && npm run dev   # http://localhost:4000
 
 # 2. Website
@@ -86,23 +86,23 @@ See each subdirectory's README for prerequisites and environment variables.
 
 ## Documentation
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system overview & data flow
-- [docs/DATA-MODEL.md](docs/DATA-MODEL.md) — database schema
-- [docs/API.md](docs/API.md) — REST API reference
-- [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) — external provider adapters
-- [docs/REQUIREMENTS-TRACEABILITY.md](docs/REQUIREMENTS-TRACEABILITY.md) — SRS → code
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — free-tier hosting for web, API and Android
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - system overview & data flow
+- [docs/DATA-MODEL.md](docs/DATA-MODEL.md) - database schema
+- [docs/API.md](docs/API.md) - REST API reference
+- [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) - external provider adapters
+- [docs/REQUIREMENTS-TRACEABILITY.md](docs/REQUIREMENTS-TRACEABILITY.md) - SRS -> code
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - free-tier hosting for web, API and Android
 
 ---
 
-## User classes (SRS §2.3)
+## User classes (SRS section 2.3)
 
-- **Students / youth** — primary users; manage their own money and time.
-- **Peer approvers** — friends/family who approve override requests; parental control
+- **Students / youth** - primary users; manage their own money and time.
+- **Peer approvers** - friends/family who approve override requests; parental control
   for underage users.
-- **Admins** — manage the system, user data, and configuration.
+- **Admins** - manage the system, user data, and configuration.
 
-## Non-functional targets (SRS §5)
+## Non-functional targets (SRS section 5)
 
 - **Security:** HTTPS everywhere, JWT auth, encryption of peer/approval requests,
   alignment with ISO/IEC 27001 practices.

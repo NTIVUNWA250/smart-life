@@ -98,7 +98,7 @@ function Admin() {
                   </Select>
                 </td>
                 <td className="py-2 pr-4">
-                  {u.isMinor ? <Badge tone="amber">minor</Badge> : <span className="text-muted">—</span>}
+                  {u.isMinor ? <Badge tone="amber">minor</Badge> : <span className="text-muted">-</span>}
                 </td>
                 <td className="py-2 pr-4 text-muted">{formatDate(u.createdAt)}</td>
               </tr>
@@ -203,8 +203,8 @@ function AuditLog() {
                   <td className="py-2 pr-4">
                     <Badge tone="slate">{e.action}</Badge>
                   </td>
-                  <td className="py-2 pr-4 font-mono text-xs text-muted">{e.userId ?? '—'}</td>
-                  <td className="py-2 pr-4 text-muted">{e.detail ?? '—'}</td>
+                  <td className="py-2 pr-4 font-mono text-xs text-muted">{e.userId ?? '-'}</td>
+                  <td className="py-2 pr-4 text-muted">{e.detail ?? '-'}</td>
                 </tr>
               ))}
             </tbody>

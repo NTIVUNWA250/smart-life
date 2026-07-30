@@ -12,7 +12,7 @@ All money values are integer **RWF**.
 | POST   | `/auth/signup`   | name, email, password, role   | Create account             |
 | POST   | `/auth/login`    | email, password               | Returns access + refresh   |
 | POST   | `/auth/refresh`  | refreshToken                  | New access token           |
-| POST   | `/auth/logout`   | —                             | Invalidate refresh token   |
+| POST   | `/auth/logout`   | -                             | Invalidate refresh token   |
 
 ## Transactions
 | Method | Path                  | Description                    |

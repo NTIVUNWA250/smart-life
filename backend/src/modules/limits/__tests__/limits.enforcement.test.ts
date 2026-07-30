@@ -34,7 +34,7 @@ const profile = {
   weekendBoostPct: 30,
 };
 
-/** Monthly: 180k expenses − 90k rent = 90k + 30k buffer = 120k spread over the month. */
+/** Monthly: 180k expenses - 90k rent = 90k + 30k buffer = 120k spread over the month. */
 function arrange({
   spentTodayRwf,
   spentMonthRwf = 0,
@@ -70,7 +70,7 @@ describe('checkPayment (daily enforcement)', () => {
     arrange({ spentTodayRwf: 0 });
     const res = await checkPayment('u1', 3_000, weekday);
     expect(res.allowed).toBe(true);
-    // 120k / (22 weekdays + 1.3 × 8 weekend days) = 3,703 a weekday.
+    // 120k / (22 weekdays + 1.3 x 8 weekend days) = 3,703 a weekday.
     expect(res.daily?.allowanceRwf).toBe(3_703);
   });
 
@@ -79,7 +79,7 @@ describe('checkPayment (daily enforcement)', () => {
     const res = await checkPayment('u1', 50_000, weekday);
     expect(res.allowed).toBe(false);
     expect(res.reason).toContain("today's budget");
-    // Well within the monthly limit — only the daily rule rejected it.
+    // Well within the monthly limit - only the daily rule rejected it.
     expect(res.limit.spentRwf + 50_000).toBeLessThan(res.limit.limitRwf);
   });
 

@@ -103,7 +103,7 @@ function RequestOverride({
   policies: ScreenTimePolicy[];
   onDone: () => Promise<void>;
 }) {
-  // Only an accepted link can receive a request — the API rejects the rest.
+  // Only an accepted link can receive a request - the API rejects the rest.
   const usable = approvers.filter((l) => l.status === 'accepted');
   const blockedPolicies = policies.filter((p) => p.isBlocked);
 
@@ -150,7 +150,7 @@ function RequestOverride({
   // Mirrors the three refusals in limits.checkPayment. Keying this off isBlocked
   // alone was wrong: the daily-budget refusal is by far the most common one and
   // never sets that flag, so the card stayed silent for the exact case it exists
-  // for. Screen-time blocks are surfaced too — they refuse a different thing.
+  // for. Screen-time blocks are surfaced too - they refuse a different thing.
   const overDaily = daily ? daily.spentTodayRwf >= daily.allowanceRwf : false;
   const overPeriod = limit ? limit.spentRwf >= limit.limitRwf : false;
   const spendingStuck = Boolean(limit?.isBlocked) || overDaily || overPeriod;
@@ -175,7 +175,7 @@ function RequestOverride({
           <div className="mb-4">
             <Alert tone="warning">
               {why} Further expenses are refused until a peer or parent approves an
-              override — one approval covers one expense.
+              override - one approval covers one expense.
             </Alert>
           </div>
         )

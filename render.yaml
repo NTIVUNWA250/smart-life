@@ -1,7 +1,7 @@
 # Render blueprint for the SMART LIFE API.
 #
 # Render's free instances sleep after 15 minutes idle, so the first request
-# after a quiet spell waits 30–60s while the container wakes. Warm it before a
+# after a quiet spell waits 30-60s while the container wakes. Warm it before a
 # demo. The database is deliberately NOT defined here: Render's free Postgres
 # expires after 30 days, so DATABASE_URL points at Neon instead (see
 # docs/DEPLOYMENT.md).
@@ -13,8 +13,8 @@ services:
     region: frankfurt
     rootDir: backend
     buildCommand: npm ci && npm run build
-    # migrate deploy runs on every boot. It is idempotent — already-applied
-    # migrations are skipped — and free instances have no pre-deploy hook.
+    # migrate deploy runs on every boot. It is idempotent - already-applied
+    # migrations are skipped - and free instances have no pre-deploy hook.
     startCommand: npm run start:prod
     healthCheckPath: /health
     envVars:

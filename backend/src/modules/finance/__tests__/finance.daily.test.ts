@@ -53,7 +53,7 @@ describe('computeDailyBudget', () => {
       heavyExpenseRwf: 90_000,
       heavyExpenseDay: 1,
       weekendBoostPct: 30,
-      now: new Date('2026-06-26T10:00:00Z'), // Friday → weekday limit applies
+      now: new Date('2026-06-26T10:00:00Z'), // Friday -> weekday limit applies
     });
     expect(b.distributableRwf).toBe(100_000);
     expect(b.heavyExpenseRwf).toBe(90_000);

@@ -56,8 +56,8 @@ async function main() {
   // A manually-created savings goal.
   //
   // The 24-month horizon is deliberate. The limit is
-  // `income − max(savingsBucket, requiredGoalSavings)`, and the auto goal below
-  // already claims the entire savings bucket (savings% × income, spread over 12
+  // `income - max(savingsBucket, requiredGoalSavings)`, and the auto goal below
+  // already claims the entire savings bucket (savings% x income, spread over 12
   // months). So every month this goal demands comes straight off the demo
   // student's spending limit: at 3 months it wanted 100,000 of a 150,000 income
   // and left a 5,000 limit, which looks like a broken app. At 24 months it asks
@@ -65,7 +65,7 @@ async function main() {
   //
   // The deadline is also re-synced on every seed, like the auto goal. Creating it
   // only when absent let it drift into the past, and `monthsUntil` floors at 1
-  // month — so the whole remaining target fell due at once and the student was
+  // month - so the whole remaining target fell due at once and the student was
   // permanently blocked.
   const manualDeadline = monthsFromNow(24);
   const existingManual = await prisma.goal.findFirst({
@@ -135,7 +135,7 @@ async function main() {
 
   // Report the limit the seeded data actually produces, using the real engine
   // rather than a copy of its formula. A zero limit means the demo student is
-  // blocked and every expense will 409 — which reads as a broken app, so it is
+  // blocked and every expense will 409 - which reads as a broken app, so it is
   // worth failing loudly here rather than discovering it in the UI.
   const limit = await recomputeCurrentLimit(student.id);
   const rwf = (n: number) => `RWF ${n.toLocaleString('en-RW')}`;

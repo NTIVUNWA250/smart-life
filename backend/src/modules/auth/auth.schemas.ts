@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// `admin` is an internal/developer-only role — it is intentionally NOT selectable
+// `admin` is an internal/developer-only role - it is intentionally NOT selectable
 // at sign-up. Admins are provisioned via seed/admin tooling, not self-service.
 export const signupSchema = z.object({
   name: z.string().min(2).max(80),
@@ -39,7 +39,7 @@ export const updateProfileSchema = z
   .object({
     name: z.string().min(2).max(80).optional(),
     email: z.string().email().optional(),
-    // MTN expects a bare international MSISDN — digits only, no '+' or spaces
+    // MTN expects a bare international MSISDN - digits only, no '+' or spaces
     // (Rwanda: 2507XXXXXXXX). Explicit null unlinks the wallet.
     momoMsisdn: z
       .string()

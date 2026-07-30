@@ -4,7 +4,7 @@
  * Ids are real Android package names, because that is what actually gets
  * measured: the phone reports usage via `UsageStatsManager`, which reports
  * per-app foreground time keyed by package name. It cannot see browser URLs, so
- * a limit on `youtube.com` would never accumulate a single minute — only
+ * a limit on `youtube.com` would never accumulate a single minute - only
  * `com.google.android.youtube` does.
  *
  * Kept in sync with `ScreenTimeNative.commonApps` in

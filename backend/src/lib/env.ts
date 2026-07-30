@@ -36,7 +36,7 @@ export const env = {
 
   // MTN MoMo Open API. Only read when PROVIDER_MODE=live; the defaults point at
   // MTN's sandbox host, so nothing here can reach production by accident.
-  // Credentials are not `required()` — a missing one degrades that single channel
+  // Credentials are not `required()` - a missing one degrades that single channel
   // to the sandbox stub rather than stopping the server from booting.
   momo: {
     baseUrl: optional('MOMO_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),
@@ -51,7 +51,7 @@ export const env = {
 
 export const isProd = env.nodeEnv === 'production';
 
-// The placeholder key is fine for local work — it keeps `npm run dev` running
+// The placeholder key is fine for local work - it keeps `npm run dev` running
 // without ceremony. In production it would encrypt every MoMo number with a key
 // that is committed to the repo, which is the same as not encrypting them. Fail
 // at boot rather than silently, because nothing downstream can detect it.
@@ -59,6 +59,6 @@ if (isProd && env.fieldEncryptionKey === '0'.repeat(64)) {
   throw new Error(
     'FIELD_ENCRYPTION_KEY is still the all-zero placeholder. Generate one with:\n' +
       '  node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"\n' +
-      'Keep a copy — if it is lost, encrypted fields cannot be recovered.',
+      'Keep a copy - if it is lost, encrypted fields cannot be recovered.',
   );
 }

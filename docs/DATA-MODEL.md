@@ -20,7 +20,7 @@ This is the initial v1.0 schema; it will be refined as features land.
 | Field      | Type      | Notes                          |
 | ---------- | --------- | ------------------------------ |
 | id         | uuid PK   |                                |
-| userId     | uuid FK   | → User                         |
+| userId     | uuid FK   | -> User                         |
 | type       | enum      | `income` \| `expense`          |
 | amountRwf  | int       |                                |
 | category   | text      |                                |
@@ -62,8 +62,8 @@ This is the initial v1.0 schema; it will be refined as features land.
 | Field        | Type      | Notes                                          |
 | ------------ | --------- | ---------------------------------------------- |
 | id           | uuid PK   |                                                |
-| requesterId  | uuid FK   | → User (student)                               |
-| approverId   | uuid FK   | → User (peer/parent)                           |
+| requesterId  | uuid FK   | -> User (student)                               |
+| approverId   | uuid FK   | -> User (peer/parent)                           |
 | kind         | enum      | `spending` \| `screentime`                     |
 | targetId     | uuid      | the limit/policy being unlocked                |
 | status       | enum      | `pending` \| `approved` \| `denied`            |
@@ -75,6 +75,6 @@ Connects a student to their approvers (friends/family), with `relationship`
 
 ## Relationships
 
-- User 1—* Transaction, Goal, SpendingLimit, ScreenTimePolicy
-- User *—* User via PeerLink (student ↔ approver)
+- User 1-* Transaction, Goal, SpendingLimit, ScreenTimePolicy
+- User *-* User via PeerLink (student <-> approver)
 - Approval references one requester + one approver

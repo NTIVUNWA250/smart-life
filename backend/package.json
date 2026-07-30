@@ -2,7 +2,7 @@
   "name": "smartlife-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "SMART LIFE backend API — Node.js + Express + PostgreSQL (Prisma)",
+  "description": "SMART LIFE backend API - Node.js + Express + PostgreSQL (Prisma)",
   "type": "module",
   "engines": {
     "node": ">=20"

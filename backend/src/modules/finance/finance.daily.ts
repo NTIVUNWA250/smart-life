@@ -1,5 +1,5 @@
-// Daily spending budget (FR3/FR4). The month's "distributable" money — daily
-// expected spendings (food, transport…) plus the unexpected buffer — is shared
+// Daily spending budget (FR3/FR4). The month's "distributable" money - daily
+// expected spendings (food, transport...) plus the unexpected buffer - is shared
 // across the days, with weekends given a boost over weekdays. Weekday limits are
 // lowered to compensate so the monthly total never exceeds what was budgeted.
 //
@@ -28,8 +28,8 @@ export function isWeekend(date: Date): boolean {
 
 /**
  * Splits a monthly distributable amount into weekday/weekend daily limits such
- * that  weekdays·x + weekends·(x·boost) = total,  with weekend = weekday·boost.
- * Both are floored so the realised total can only be ≤ `total` (never over).
+ * that  weekdays-x + weekends-(x-boost) = total,  with weekend = weekday-boost.
+ * Both are floored so the realised total can only be <= `total` (never over).
  */
 export function splitDailyLimits(
   totalRwf: number,
@@ -53,7 +53,7 @@ export interface DailyBudget {
   /** The limit that applies to `now`'s day. */
   todayLimitRwf: number;
   todayIsWeekend: boolean;
-  /** Lump monthly expense (rent) and the day it's paid — exempt from the daily limit. */
+  /** Lump monthly expense (rent) and the day it's paid - exempt from the daily limit. */
   heavyExpenseRwf: number;
   heavyExpenseDay: number;
   daysInMonth: number;
@@ -71,7 +71,7 @@ export function todayAllowanceRwf(budget: DailyBudget, now: Date): number {
 }
 
 export function computeDailyBudget(params: {
-  /** Expected expenses that recur daily = expected total − heavy lump. */
+  /** Expected expenses that recur daily = expected total - heavy lump. */
   dailyExpectedTotalRwf: number;
   unexpectedRwf: number;
   heavyExpenseRwf: number;

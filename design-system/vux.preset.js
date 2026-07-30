@@ -1,5 +1,5 @@
 /**
- * VUX — Tailwind preset.
+ * VUX - Tailwind preset.
  *
  * Every value here points at a custom property defined in `vux.css`, so the
  * tokens have exactly one source of truth. Import vux.css first; this preset
@@ -18,7 +18,7 @@
 /** @type {import('tailwindcss').Config} */
 const preset = {
   // Both hooks, not one. The two-element ['class', sel] form REPLACES `.dark`
-  // with sel — which silently kills every `dark:` utility in an app that
+  // with sel - which silently kills every `dark:` utility in an app that
   // toggles a class. The selector strategy with a list matches either.
   darkMode: ['selector', '.dark, [data-theme="dark"]'],
   theme: {
@@ -31,7 +31,7 @@ const preset = {
         brand: 'var(--vux-brand)',
         hairline: 'var(--vux-hairline)',
 
-        // Layer 3 — constant in every product.
+        // Layer 3 - constant in every product.
         state: {
           success: 'var(--vux-success-text)',
           'success-fill': 'var(--vux-success-fill)',
@@ -57,7 +57,7 @@ const preset = {
         mono: 'var(--vux-font-util)',
       },
 
-      // [size, { lineHeight, letterSpacing }] — the two-ratio scale.
+      // [size, { lineHeight, letterSpacing }] - the two-ratio scale.
       fontSize: {
         '2xs': ['var(--vux-text-2xs)', { lineHeight: '1.4', letterSpacing: '0.16em' }],
         xs: ['var(--vux-text-xs)', { lineHeight: '1.5' }],
@@ -71,7 +71,7 @@ const preset = {
       },
 
       // 3px everywhere. `rounded` and `rounded-lg` are deliberately the same
-      // value — so an absent-minded `rounded-xl` cannot drift the house style.
+      // value - so an absent-minded `rounded-xl` cannot drift the house style.
       borderRadius: {
         DEFAULT: 'var(--vux-radius)',
         sm: '2px',

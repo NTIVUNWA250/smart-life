@@ -38,13 +38,13 @@ export default function SignupPage() {
   const router = useRouter();
 
   const [step, setStep] = useState(1);
-  // Step 1 — account
+  // Step 1 - account
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<SignupRole>('student');
   const [isMinor, setIsMinor] = useState(false);
-  // Step 2 — budget (students only)
+  // Step 2 - budget (students only)
   const [income, setIncome] = useState('');
   const [incomeFrequency, setIncomeFrequency] = useState<Frequency>('monthly');
   const [budget, setBudget] = useState<BudgetValue>(DEFAULT_BUDGET);

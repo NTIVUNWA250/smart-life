@@ -4,7 +4,7 @@ import '../api/api_client.dart';
 import '../api/models.dart';
 
 /// Holds the authenticated user and brokers access to the [ApiClient].
-/// A small [ChangeNotifier] keeps state simple — no heavy framework (see README).
+/// A small [ChangeNotifier] keeps state simple - no heavy framework (see README).
 class AppState extends ChangeNotifier {
   AppState(this.api);
 

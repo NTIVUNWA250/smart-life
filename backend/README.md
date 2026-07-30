@@ -1,10 +1,10 @@
-# SMART LIFE — Backend API
+# SMART LIFE - Backend API
 
 Node.js + Express + TypeScript REST API backed by **PostgreSQL** (via Prisma).
 This is the single source of truth for users, transactions, goals, spending limits,
 approvals, and the external-provider adapters that block payments and screen time.
 
-> Database constraint (SRS §2.5): **PostgreSQL only — no Supabase.**
+> Database constraint (SRS section 2.5): **PostgreSQL only - no Supabase.**
 
 ---
 
@@ -40,7 +40,7 @@ npm run dev                 # http://localhost:4000
 | `JWT_ACCESS_SECRET`     | Signing secret for short-lived access tokens       |
 | `JWT_REFRESH_SECRET`    | Signing secret for refresh tokens                  |
 | `PORT`                  | API port (default `4000`)                          |
-| `PROVIDER_MODE`         | `sandbox` (default) or `live` — selects adapters   |
+| `PROVIDER_MODE`         | `sandbox` (default) or `live` - selects adapters   |
 | `MOMO_*`, `AIRTEL_*`    | Mobile-money credentials (only needed in `live`)   |
 
 ---
@@ -49,17 +49,17 @@ npm run dev                 # http://localhost:4000
 
 ```
 src/
-├── index.ts            App entry / Express bootstrap
-├── routes/             HTTP routes (thin)
-├── controllers/        Request handling + validation
-├── services/           Business logic (limits, goals, approvals)
-├── providers/          External-API adapters (sandbox + live)
-│   ├── payment/        MTN MoMo, Airtel Money, Bank — block/unblock
-│   ├── screentime/     OS-level screen-time policies
-│   └── calendar/       Google Calendar scheduling
-├── middleware/         Auth (JWT), error handling, rate limiting
-├── prisma/             schema.prisma + migrations
-└── lib/                shared utils (crypto, logging, money/RWF)
++-- index.ts            App entry / Express bootstrap
++-- routes/             HTTP routes (thin)
++-- controllers/        Request handling + validation
++-- services/           Business logic (limits, goals, approvals)
++-- providers/          External-API adapters (sandbox + live)
+|   +-- payment/        MTN MoMo, Airtel Money, Bank - block/unblock
+|   +-- screentime/     OS-level screen-time policies
+|   `-- calendar/       Google Calendar scheduling
++-- middleware/         Auth (JWT), error handling, rate limiting
++-- prisma/             schema.prisma + migrations
+`-- lib/                shared utils (crypto, logging, money/RWF)
 ```
 
 **Provider adapter pattern:** every external integration implements a TypeScript
@@ -72,14 +72,14 @@ in-memory fakes so the whole app runs and is testable with **no external account
 
 ## Key modules
 
-- **auth** — signup/login, JWT issue/refresh, password reset, role (`student`,
+- **auth** - signup/login, JWT issue/refresh, password reset, role (`student`,
   `approver`, `admin`).
-- **transactions** — income/expense entry, categorisation, balances.
-- **goals** — savings goals with target amount + deadline, progress tracking.
-- **limits** — computes spending limits from income/goals; triggers payment blocking.
-- **approvals** — peer/parental requests to unlock a spending or screen-time limit.
-- **screentime** — daily app/website limits and block policies (synced from mobile).
-- **analytics** — aggregates for the dashboards.
+- **transactions** - income/expense entry, categorisation, balances.
+- **goals** - savings goals with target amount + deadline, progress tracking.
+- **limits** - computes spending limits from income/goals; triggers payment blocking.
+- **approvals** - peer/parental requests to unlock a spending or screen-time limit.
+- **screentime** - daily app/website limits and block policies (synced from mobile).
+- **analytics** - aggregates for the dashboards.
 
 ---
 
@@ -97,7 +97,7 @@ in-memory fakes so the whole app runs and is testable with **no external account
 
 ---
 
-## Security (SRS §5.3)
+## Security (SRS section 5.3)
 
 - All traffic over **HTTPS** in deployment.
 - **JWT** access + refresh tokens; passwords hashed with bcrypt.

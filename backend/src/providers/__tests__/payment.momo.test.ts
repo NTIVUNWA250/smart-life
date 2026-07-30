@@ -3,7 +3,7 @@ import { MomoApiError, MomoPaymentProvider } from '../live/payment.momo.js';
 
 // The MTN Open API is exercised through an injected fetch, so these tests assert
 // the exact contract we send MTN (headers, auth, paths) and how we react to each
-// answer — without needing a developer-portal subscription key.
+// answer - without needing a developer-portal subscription key.
 
 const CFG = {
   baseUrl: 'https://sandbox.momodeveloper.mtn.com',
@@ -44,7 +44,7 @@ function provider(opts: {
   });
 }
 
-describe('MomoPaymentProvider — block state', () => {
+describe('MomoPaymentProvider - block state', () => {
   it('refuses a blocked user without calling MTN at all', async () => {
     const f = fakeFetch(() => jsonRes({ result: true }));
     const p = provider({ fetch: f, msisdn: '250788123456' });
@@ -66,7 +66,7 @@ describe('MomoPaymentProvider — block state', () => {
   });
 });
 
-describe('MomoPaymentProvider — account-holder check', () => {
+describe('MomoPaymentProvider - account-holder check', () => {
   it('sends the token, target environment and subscription key MTN requires', async () => {
     let seen: { url: string; headers: Record<string, string> } | null = null;
     const f = fakeFetch((url, init) => {
@@ -92,7 +92,7 @@ describe('MomoPaymentProvider — account-holder check', () => {
   });
 
   // These three pin the response *shape*. The original fixture asserted a bare
-  // `true`, which is what MTN's documentation examples show — the live sandbox
+  // `true`, which is what MTN's documentation examples show - the live sandbox
   // actually answers `{"result":true}`, so every active account was being read as
   // inactive and every linked user's payment refused. The tests were green
   // throughout, because the fake and the adapter shared one wrong assumption.
@@ -116,7 +116,7 @@ describe('MomoPaymentProvider — account-holder check', () => {
     expect(await provider({ fetch: f, msisdn: '250788000000' }).authorize('u1', 5_000)).toBe(false);
   });
 
-  it('allows when MTN is unreachable — SMART LIFE limits remain authoritative', async () => {
+  it('allows when MTN is unreachable - SMART LIFE limits remain authoritative', async () => {
     const f = vi.fn(async () => {
       throw new Error('ETIMEDOUT');
     }) as unknown as typeof globalThis.fetch;
@@ -129,7 +129,7 @@ describe('MomoPaymentProvider — account-holder check', () => {
   });
 });
 
-describe('MomoPaymentProvider — access token', () => {
+describe('MomoPaymentProvider - access token', () => {
   it('fetches the token once and reuses it across calls', async () => {
     let tokenCalls = 0;
     const f = vi.fn(async (input: string | URL | Request) => {
@@ -183,13 +183,13 @@ describe('MomoPaymentProvider — access token', () => {
     }) as unknown as typeof globalThis.fetch;
 
     const p = provider({ fetch: f, msisdn: '250788123456' });
-    expect(await p.authorize('u1', 1)).toBe(true); // 401 → fail open
+    expect(await p.authorize('u1', 1)).toBe(true); // 401 -> fail open
     await p.authorize('u1', 2);
     expect(tokenCalls).toBe(2); // Token was discarded and re-fetched.
   });
 });
 
-describe('MomoPaymentProvider — diagnostics', () => {
+describe('MomoPaymentProvider - diagnostics', () => {
   it('reads the Collections balance', async () => {
     const f = fakeFetch(() => jsonRes({ availableBalance: '1000', currency: 'EUR' }));
     const balance = await provider({ fetch: f }).accountBalance();

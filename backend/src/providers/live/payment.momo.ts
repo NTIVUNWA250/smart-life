@@ -22,7 +22,7 @@ export interface MomoConfig {
   baseUrl: string;
   /** Ocp-Apim-Subscription-Key from the MoMo developer portal. */
   subscriptionKey: string;
-  /** API user id (a UUID) — see `npm run momo:provision`. */
+  /** API user id (a UUID) - see `npm run momo:provision`. */
   apiUser: string;
   apiKey: string;
   /** X-Target-Environment: `sandbox`, or the production environment name. */
@@ -104,7 +104,7 @@ export class MomoPaymentProvider implements PaymentProvider {
     if (this.blocked.has(userId)) return false;
 
     const msisdn = await this.deps.msisdnFor(userId);
-    if (!msisdn) return true; // No linked wallet — nothing for MTN to rule on.
+    if (!msisdn) return true; // No linked wallet - nothing for MTN to rule on.
 
     try {
       const active = await this.isAccountActive(msisdn);
@@ -128,10 +128,10 @@ export class MomoPaymentProvider implements PaymentProvider {
    * GET /collection/v1_0/accountholder/msisdn/{msisdn}/active.
    *
    * 404 means MTN has no such account holder, which is a definite "no" rather than
-   * a failure — it must not be swallowed by `authorize`'s fail-open path, so it is
+   * a failure - it must not be swallowed by `authorize`'s fail-open path, so it is
    * translated here instead of throwing.
    *
-   * On 200 the sandbox answers `{"result":true}`, verified against the live host —
+   * On 200 the sandbox answers `{"result":true}`, verified against the live host -
    * *not* the bare `true` the docs' examples suggest. Both are accepted, and an
    * empty body is treated as success, because a 200 that we cannot parse is a
    * worse reason to refuse someone's payment than trusting the status code.
@@ -157,12 +157,12 @@ export class MomoPaymentProvider implements PaymentProvider {
         return Boolean((parsed as { result: unknown }).result);
       }
     } catch {
-      // Not JSON — fall through to the text comparison below.
+      // Not JSON - fall through to the text comparison below.
     }
     return body.toLowerCase() === 'true';
   }
 
-  /** GET /collection/v1_0/account/balance — diagnostics; verifies credentials work. */
+  /** GET /collection/v1_0/account/balance - diagnostics; verifies credentials work. */
   async accountBalance(): Promise<{ availableBalance: string; currency: string }> {
     const res = await this.call('/collection/v1_0/account/balance', {
       headers: await this.collectionHeaders(),
@@ -180,7 +180,7 @@ export class MomoPaymentProvider implements PaymentProvider {
 
   /**
    * POST /collection/token/ with HTTP Basic (apiUser:apiKey). Cached until shortly
-   * before `expires_in` elapses — MTN rate-limits token creation.
+   * before `expires_in` elapses - MTN rate-limits token creation.
    */
   private async accessToken(): Promise<string> {
     const cached = this.token;

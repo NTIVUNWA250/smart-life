@@ -3,7 +3,7 @@ import { logger } from '../../lib/logger.js';
 
 /**
  * In-memory payment provider. Models a per-user "blocked" flag per channel.
- * Real mobile-money/bank APIs have no generic "freeze wallet" primitive — in live
+ * Real mobile-money/bank APIs have no generic "freeze wallet" primitive - in live
  * mode this is approximated by withholding payment authorisation for transfers
  * initiated through SMART LIFE. See docs/INTEGRATIONS.md.
  */

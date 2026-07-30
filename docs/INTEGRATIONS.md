@@ -3,9 +3,9 @@
 Every third-party dependency sits behind a TypeScript interface in
 `backend/src/providers/`. The active implementation is chosen by `PROVIDER_MODE`:
 
-- `sandbox` (default) — in-memory fakes. The app runs end-to-end with **no external
+- `sandbox` (default) - in-memory fakes. The app runs end-to-end with **no external
   accounts**, and tests are deterministic.
-- `live` — real SDK/HTTP implementations, configured by provider credentials in `.env`.
+- `live` - real SDK/HTTP implementations, configured by provider credentials in `.env`.
 
 This keeps the SMART LIFE business logic real and testable today, while leaving a clean
 seam to plug in production APIs once partnerships/credentials exist.
@@ -16,14 +16,14 @@ Interface: `PaymentProvider { block(userId), unblock(userId), status(userId) }`
 
 | Provider     | Live API                          | Status                                              |
 | ------------ | --------------------------------- | --------------------------------------------------- |
-| MTN MoMo     | MTN MoMo Open API (Collections)   | **live adapter** — `providers/live/payment.momo.ts` |
+| MTN MoMo     | MTN MoMo Open API (Collections)   | **live adapter** - `providers/live/payment.momo.ts` |
 | Airtel Money | Airtel Africa API                 | sandbox stub                                        |
 | Bank         | Bank-specific API (per partner)   | sandbox stub                                        |
 
 > Real mobile-money APIs do **not** expose a generic "freeze this user's wallet"
 > primitive. In `live` mode, blocking is approximated by withholding payment
 > authorisation / disabling outbound transfers initiated through SMART LIFE. The exact
-> capability depends on each partner agreement — documented per adapter.
+> capability depends on each partner agreement - documented per adapter.
 
 ### MTN MoMo setup
 
@@ -39,7 +39,7 @@ apiuser/apikey endpoints exist only on the sandbox host, and production credenti
 are issued by MTN during onboarding.
 
 **What the adapter actually does.** MTN cannot freeze a wallet, so `block`/`unblock`
-remain a SMART LIFE decision held in memory, exactly as in the stub — and, as before,
+remain a SMART LIFE decision held in memory, exactly as in the stub - and, as before,
 `limits.checkPayment` is the real enforcement. What MTN *can* answer is whether an
 MSISDN is a live account holder, so `authorize` calls
 `GET /collection/v1_0/accountholder/msisdn/{msisdn}/active` and refuses payments
@@ -55,11 +55,11 @@ failure, and does refuse.
 **Linking a wallet.** `PATCH /api/v1/auth/me` accepts `momoMsisdn` (digits only, in
 international format, e.g. `250788123456`; explicit `null` unlinks). It is stored
 AES-GCM encrypted in `User.momoMsisdnEnc` (NFR7) and audited as `auth.momo.linked` /
-`auth.momo.unlinked` — without recording the number itself. A user with no linked
+`auth.momo.unlinked` - without recording the number itself. A user with no linked
 wallet is never sent to MTN at all.
 
 **The response shape, verified against the live host.** `/active` answers **200 with
-`{"result":true}`** — *not* the bare `true` MTN's documentation examples show. The
+`{"result":true}`** - *not* the bare `true` MTN's documentation examples show. The
 adapter parses the envelope, the bare boolean and an empty body, because a 200 it
 cannot parse is a worse reason to refuse a payment than trusting the status code.
 This was found only by pointing a real key at the sandbox: the unit tests and the
@@ -69,13 +69,13 @@ and every linked user's payment would have been refused, with 12 green tests.
 **Sandbox caveats.** Confirmed by running against it, rather than assumed:
 
 - The Collections balance is reported in **EUR**, not RWF, and can be negative.
-- `/active` returns `true` for **any** well-formed Rwandan MSISDN — the sandbox has
+- `/active` returns `true` for **any** well-formed Rwandan MSISDN - the sandbox has
   no notion of an unknown subscriber, so the "unrecognised number is refused" path
   cannot be demonstrated there. It is reachable only via a 404 from the real host.
 - A non-Rwandan MSISDN returns **500 `NOT_ALLOWED_TARGET_ENVIRONMENT`**, not a 404,
   and so takes the fail-open path rather than being refused.
 - `GET /collection/v1_0/account/balance` returns 503 intermittently. `momo:provision`
-  treats it as a warning, never fatal — it is a diagnostic, and the access token
+  treats it as a warning, never fatal - it is a diagnostic, and the access token
   already proves the credentials work.
 
 So the sandbox proves the integration works; it does not prove any particular Rwandan
@@ -94,7 +94,7 @@ Interface: `ScreenTimeProvider { getUsage(userId), enforceBlock(policy) }`
 ## Calendar provider
 
 Interface: `CalendarProvider { createEvent(...), listEvents(...) }`
-- **Google Calendar API** for schedule planning (SRS §3.3). Sandbox returns an
+- **Google Calendar API** for schedule planning (SRS section 3.3). Sandbox returns an
   in-memory calendar.
 
 ## Adding a live provider
@@ -102,4 +102,4 @@ Interface: `CalendarProvider { createEvent(...), listEvents(...) }`
 1. Implement the interface under `providers/<domain>/live/`.
 2. Register it in the provider factory keyed by `PROVIDER_MODE=live`.
 3. Add credentials to `.env.example` and the README env table.
-4. Keep the sandbox version — it stays the default for tests and local dev.
+4. Keep the sandbox version - it stays the default for tests and local dev.

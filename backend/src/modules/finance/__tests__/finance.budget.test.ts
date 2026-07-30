@@ -123,7 +123,7 @@ describe('suggestBudget', () => {
       goalRequiredPerMonthRwf: 110_000, // 55% of income
     });
     expect(s.savingsPct).toBe(55);
-    expect(s.unexpectedPct).toBe(5); // buffer shrank from 10 → 5 to fund goals
+    expect(s.unexpectedPct).toBe(5); // buffer shrank from 10 -> 5 to fund goals
   });
 
   it('uses the income-progressive floor when goals are modest', () => {

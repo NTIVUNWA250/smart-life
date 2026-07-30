@@ -15,8 +15,8 @@ export interface GoalEditProposal {
 
 /**
  * Picks the approver a goal edit must be routed to:
- *   - minors  → a linked, accepted **parent**
- *   - adults  → a linked, accepted **peer**
+ *   - minors  -> a linked, accepted **parent**
+ *   - adults  -> a linked, accepted **peer**
  * An explicit approverId may be supplied but must still satisfy the relationship.
  */
 async function pickApprover(user: Pick<User, 'id' | 'isMinor'>, approverId?: string): Promise<string> {

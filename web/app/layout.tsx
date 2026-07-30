@@ -12,14 +12,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // data-product selects the VUX ground and accent, and the display face with
-    // it. Education: violet accent on a violet-tinted paper, set in Aleo — the
+    // it. Education: violet accent on a violet-tinted paper, set in Aleo - the
     // softer slab, because this is a product people read in. design-system/vux.css.
     <html lang="en" data-product="education" suppressHydrationWarning>
       <head>
         {/* Apply saved theme before paint to avoid a flash of the wrong theme. */}
         <script dangerouslySetInnerHTML={{ __html: themeNoFlashScript }} />
         {/* The education stack: Aleo display, Poppins interface, JetBrains Mono
-            for labels and figures. Five weights, no more — every extra file is a
+            for labels and figures. Five weights, no more - every extra file is a
             real cost on a Rwandan mobile connection. Loaded by link rather than
             next/font so the build never depends on the network; vux.css declares
             full fallback stacks either way. */}

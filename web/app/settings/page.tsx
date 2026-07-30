@@ -107,7 +107,7 @@ function ProfileSection() {
 }
 
 /**
- * The MoMo number used to sit among the profile fields, labelled "optional" —
+ * The MoMo number used to sit among the profile fields, labelled "optional" -
  * which said nothing about what it does. It is the link between this account and
  * the wallet SMART LIFE checks before a payment, so it gets its own section that
  * says so, and shows whether a wallet is currently linked.
@@ -127,7 +127,7 @@ function PaymentSection() {
     setErr(null);
     setBusy(true);
     try {
-      // Only send when it actually changed — every send is audited as a
+      // Only send when it actually changed - every send is audited as a
       // link/unlink, and an untouched blank field must not log an unlink each save.
       const trimmed = momo.trim();
       if (trimmed === (user?.momoMsisdn ?? '')) {
@@ -157,7 +157,7 @@ function PaymentSection() {
           <span className="text-xs text-muted">
             {linked
               ? 'Payments on this wallet are checked with MTN before they go through.'
-              : 'No wallet linked — spending limits still apply, but MTN is never consulted.'}
+              : 'No wallet linked - spending limits still apply, but MTN is never consulted.'}
           </span>
         </div>
 
@@ -170,7 +170,7 @@ function PaymentSection() {
             onChange={(e) => setMomo(e.target.value)}
           />
           <p className="mt-1 text-xs text-muted">
-            International format, digits only — e.g. 250788123456. Leave blank to unlink.
+            International format, digits only - e.g. 250788123456. Leave blank to unlink.
             The number is stored encrypted and never shown to your approvers.
           </p>
         </Field>
@@ -499,7 +499,7 @@ function GoalEditRow({ goal, onDone }: { goal: Goal; onDone: () => Promise<void>
           deadline !== goal.deadline.slice(0, 10) ? new Date(deadline).toISOString() : undefined,
         reason: reason || undefined,
       });
-      setMsg('Edit requested — awaiting approval.');
+      setMsg('Edit requested - awaiting approval.');
       setOpen(false);
       await onDone();
     } catch (e2) {

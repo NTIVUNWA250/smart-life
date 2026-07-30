@@ -71,11 +71,11 @@ export const BUDGET_MODELS: BudgetModel[] = [
     savingsPct: 70,
     selectable: true,
   },
-  // —— Well-known models below the 30% savings floor (reference only) ——
+  // -- Well-known models below the 30% savings floor (reference only) --
   {
     id: 'balanced_50_30_20',
     name: '50/30/20 rule',
-    description: '50% needs · 30% wants · 20% savings — below the 30% savings floor',
+    description: '50% needs · 30% wants · 20% savings - below the 30% savings floor',
     expectedPct: 70,
     unexpectedPct: 10,
     savingsPct: 20,
@@ -84,7 +84,7 @@ export const BUDGET_MODELS: BudgetModel[] = [
   {
     id: 'rule_70_20_10',
     name: '70/20/10 rule',
-    description: '70% expenses · 20% savings · 10% debt/giving — below the 30% floor',
+    description: '70% expenses · 20% savings · 10% debt/giving - below the 30% floor',
     expectedPct: 70,
     unexpectedPct: 10,
     savingsPct: 20,
@@ -92,8 +92,8 @@ export const BUDGET_MODELS: BudgetModel[] = [
   },
   {
     id: 'pay_yourself_80_20',
-    name: '80/20 — pay yourself first',
-    description: '80% expenses · 20% savings — below the 30% savings floor',
+    name: '80/20 - pay yourself first',
+    description: '80% expenses · 20% savings - below the 30% savings floor',
     expectedPct: 70,
     unexpectedPct: 10,
     savingsPct: 20,
@@ -199,7 +199,7 @@ export function deriveDaily(p: DailyProfile, now: Date): DailyBudget {
 
 /**
  * Base savings rate that rises with income, so higher earners save more. Monthly
- * income in RWF → suggested floor savings %. Tiers are deliberate, not smooth, so
+ * income in RWF -> suggested floor savings %. Tiers are deliberate, not smooth, so
  * the suggestion is easy to explain.
  */
 export function progressiveSavingsBasePct(monthlyIncomeRwf: number): number {
@@ -213,9 +213,9 @@ export function progressiveSavingsBasePct(monthlyIncomeRwf: number): number {
 export interface SuggestInput {
   monthlyIncomeRwf: number;
   expectedPct: number;
-  /** Total still needed across active goals (Σ target − saved). */
+  /** Total still needed across active goals (Sum target - saved). */
   goalRemainingRwf: number;
-  /** Monthly RWF goals require to hit every deadline (Σ ceil(remaining / monthsLeft)). */
+  /** Monthly RWF goals require to hit every deadline (Sum ceil(remaining / monthsLeft)). */
   goalRequiredPerMonthRwf: number;
 }
 
@@ -234,7 +234,7 @@ export interface BudgetSuggestion {
 /**
  * Suggests a savings rate (and expected/unexpected split) from income, stated
  * expenses and goals. The rate is the highest of: the income-progressive floor,
- * the 30% hard floor, and what the goals require — capped so expenses are covered.
+ * the 30% hard floor, and what the goals require - capped so expenses are covered.
  */
 export function suggestBudget(input: SuggestInput): BudgetSuggestion {
   const income = Math.max(0, input.monthlyIncomeRwf);
@@ -265,7 +265,7 @@ export function suggestBudget(input: SuggestInput): BudgetSuggestion {
 
   let rationale: string;
   if (input.goalRemainingRwf <= 0) {
-    rationale = `No active goals — saving ${savingsPct}% builds your buffer; this rate rises as your income grows.`;
+    rationale = `No active goals - saving ${savingsPct}% builds your buffer; this rate rises as your income grows.`;
   } else if (meetsGoalDeadlines) {
     rationale = `Saving ${savingsPct}% funds your goals in ~${monthsToReachGoals} month(s) and meets their deadlines.`;
   } else {

@@ -1,4 +1,4 @@
-// SMART LIFE — PostgreSQL schema (SRS §2.5: PostgreSQL only, no Supabase)
+// SMART LIFE - PostgreSQL schema (SRS section 2.5: PostgreSQL only, no Supabase)
 // All monetary values are integer Rwandan Francs (RWF).
 
 generator client {
@@ -156,7 +156,7 @@ model Goal {
 // Income / expected-expenses captured at sign-up, used to auto-calculate the
 // savings goal (FR3). Editable at most once per calendar month, like goals.
 // Percentage-based monthly budget (FR3). Income is split into expected expenses,
-// an unexpected-expense buffer (≤10%) and savings (≥30%, funds the goals). The
+// an unexpected-expense buffer (<=10%) and savings (>=30%, funds the goals). The
 // chosen budget model seeds these; users may customise within those guardrails.
 model FinanceProfile {
   id              String    @id @default(uuid())
@@ -174,7 +174,7 @@ model FinanceProfile {
   // Big monthly expense (e.g. rent) paid as a lump on the heavy-spending day;
   // the remainder of expected expenses is spread across each day.
   heavyExpenseRwf Int       @default(0)
-  heavyExpenseDay Int       @default(1) // day of month (1–28) for the lump payment
+  heavyExpenseDay Int       @default(1) // day of month (1-28) for the lump payment
   // Extra daily allowance on weekends vs weekdays (weekdays are lowered to match).
   weekendBoostPct Int       @default(30)
   // Last definition change; enforces the once-per-month edit rule.
@@ -192,11 +192,11 @@ model TimetableEntry {
   title           String
   category        ActivityCategory @default(other)
   notes           String?
-  // Weekdays this repeats on: 0=Sunday … 6=Saturday. Non-empty.
+  // Weekdays this repeats on: 0=Sunday ... 6=Saturday. Non-empty.
   daysOfWeek      Int[]
-  startMin        Int              // 0–1439, minutes from midnight (local)
-  endMin          Int              // > startMin, ≤ 1440
-  // Focus mode: while active, only allowedTargets stay enabled — everything else
+  startMin        Int              // 0-1439, minutes from midnight (local)
+  endMin          Int              // > startMin, <= 1440
+  // Focus mode: while active, only allowedTargets stay enabled - everything else
   // is blocked (FR5 isolation).
   isolation       Boolean          @default(false)
   reminderEnabled Boolean          @default(true)
@@ -286,7 +286,7 @@ model Approval {
   approverId  String
   kind        ApprovalKind
   targetId    String
-  // Encrypted free-text reason / context (SRS §2.4 — encryption for peer requests)
+  // Encrypted free-text reason / context (SRS section 2.4 - encryption for peer requests)
   reasonEnc   String?
   // Encrypted JSON of the proposed change, applied on approval (kind=goal_edit).
   proposedEnc String?

@@ -18,7 +18,7 @@ interface NavItem {
 
 /**
  * The rail carries everything; the phone tab bar carries the first five and the
- * rest fall into the overflow sheet. Five is a hard limit — a sixth tab makes
+ * rest fall into the overflow sheet. Five is a hard limit - a sixth tab makes
  * every target too narrow to hit.
  */
 const NAV: NavItem[] = [

@@ -1,5 +1,5 @@
 // Pure scheduling logic for the weekly timetable. Times are minutes from local
-// midnight (0–1439); days are 0=Sunday … 6=Saturday. Activities do not wrap past
+// midnight (0-1439); days are 0=Sunday ... 6=Saturday. Activities do not wrap past
 // midnight (endMin > startMin), so an overnight block is entered as two parts.
 
 export const MINUTES_PER_DAY = 1440;
@@ -17,8 +17,8 @@ export interface ScheduleEntry {
 }
 
 export interface Clock {
-  dow: number; // 0–6
-  min: number; // 0–1439
+  dow: number; // 0-6
+  min: number; // 0-1439
 }
 
 /** Derives the local day-of-week + minute-of-day from a Date (UTC fields). */
@@ -48,13 +48,13 @@ export function entriesOverlap(a: ScheduleEntry, b: ScheduleEntry): boolean {
 
 export interface DueReminder<T> {
   entry: T;
-  /** Whole minutes until the activity starts (0 … reminderLeadMin). */
+  /** Whole minutes until the activity starts (0 ... reminderLeadMin). */
   startsInMin: number;
 }
 
 /**
  * Entries whose start is within their reminder lead window right now:
- * reminders fire from (startMin − reminderLeadMin) up to startMin.
+ * reminders fire from (startMin - reminderLeadMin) up to startMin.
  */
 export function dueReminders<T extends ScheduleEntry>(entries: T[], clock: Clock): DueReminder<T>[] {
   const out: DueReminder<T>[] = [];

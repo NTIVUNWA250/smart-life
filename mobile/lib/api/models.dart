@@ -194,7 +194,7 @@ class ScreenTimePolicy {
       );
 }
 
-/// A linked person (from `/peers`) — used as the approver options when a
+/// A linked person (from `/peers`) - used as the approver options when a
 /// student requests an override.
 class PeerPerson {
   PeerPerson({required this.id, required this.name, required this.email});

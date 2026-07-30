@@ -3,7 +3,7 @@
 /**
  * SMART LIFE UI primitives, wearing VUX.
  *
- * The exported API is unchanged, so no page needed editing — the retrofit
+ * The exported API is unchanged, so no page needed editing - the retrofit
  * happens here and propagates. Colour now comes from `design-system/vux.css`
  * custom properties rather than hard-coded Tailwind palette steps, which is
  * what lets a single `data-product` on <html> re-skin the whole app.
@@ -49,7 +49,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 /**
  * One button, two border treatments. Notch is reserved for the action that
- * commits — one per screen. If two actions both look primary, neither is.
+ * commits - one per screen. If two actions both look primary, neither is.
  *
  * The colour is the action's state, not decoration: a Deny wears danger so the
  * button says what it does before the label is read.
@@ -190,7 +190,7 @@ export function Badge({
   return <span className={`vux-chip ${BADGE_TONE[tone]}`}>{children}</span>;
 }
 
-/** Loading wears the product's colour — the one state that should. */
+/** Loading wears the product's colour - the one state that should. */
 export function Spinner({ label }: { label?: string }) {
   return (
     <div className="flex items-center gap-3 text-xs text-muted">

@@ -101,11 +101,11 @@ export async function createProfile(userId: string, raw: FinanceInput): Promise<
   return profile;
 }
 
-/** Edit the budget — allowed at most once per calendar month (FR3 control). */
+/** Edit the budget - allowed at most once per calendar month (FR3 control). */
 export async function updateProfile(userId: string, raw: FinanceInput): Promise<FinanceProfile> {
   const input = validate(raw);
   const existing = await prisma.financeProfile.findUnique({ where: { userId } });
-  if (!existing) throw badRequest('No finance profile to edit — set one first');
+  if (!existing) throw badRequest('No finance profile to edit - set one first');
 
   if (isSameUtcMonth(existing.lastEditedAt)) {
     throw conflict('Your budget can only be edited once a month');
@@ -128,9 +128,9 @@ export async function getProfile(userId: string): Promise<FinanceProfile | null>
 export interface SuggestRequest {
   incomeRwf: number;
   incomeFrequency: Frequency;
-  /** Either an explicit expected-expense percentage… */
+  /** Either an explicit expected-expense percentage... */
   expectedPct?: number;
-  /** …or a RWF amount, from which the percentage is auto-calculated. */
+  /** ...or a RWF amount, from which the percentage is auto-calculated. */
   expectedExpensesRwf?: number;
 }
 

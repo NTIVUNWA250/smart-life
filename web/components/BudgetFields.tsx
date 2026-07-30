@@ -28,11 +28,11 @@ export interface BudgetValue {
 }
 
 /**
- * The percentage track is primary: a budget-model dropdown, a ✦ Suggest action,
+ * The percentage track is primary: a budget-model dropdown, a  Suggest action,
  * and the three editable percentages (expected / unexpected / savings) with a live
  * RWF preview. Below it, an optional expense **fit check** lets the user state
  * their real expected expenses (in any cadence) to see whether they fit the
- * budgeted ratios — it never rewrites the percentages unless they explicitly apply.
+ * budgeted ratios - it never rewrites the percentages unless they explicitly apply.
  */
 export function BudgetFields({
   value,
@@ -51,14 +51,14 @@ export function BudgetFields({
 }) {
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionMsg, setSuggestionMsg] = useState<string | null>(null);
-  // Local-only "what do my real expenses cost?" check — not part of the budget.
+  // Local-only "what do my real expenses cost?" check - not part of the budget.
   const [statedExpense, setStatedExpense] = useState('');
 
   const error = validateBudget(value);
   const effectiveIncome = monthlyIncomeRwf + extraIncomeRwf;
   const d = deriveBudget(effectiveIncome, 'monthly', value);
-  // The daily budget is derived from the saved profile only — the server's
-  // deriveDaily never sees this month's unexpected income — so preview it from
+  // The daily budget is derived from the saved profile only - the server's
+  // deriveDaily never sees this month's unexpected income - so preview it from
   // base income, or we would promise a daily limit the server won't honour.
   const base = deriveBudget(monthlyIncomeRwf, 'monthly', value);
   const daily = deriveDailyPreview(base, value.heavyExpenseRwf, value.weekendBoostPct);
@@ -111,7 +111,7 @@ export function BudgetFields({
     }
   }
 
-  // —— expense fit check ——
+  // -- expense fit check --
   const statedMonthly =
     statedExpense !== '' ? toMonthly(Number(statedExpense), value.expenseFrequency) : null;
   const statedPct =
@@ -123,23 +123,23 @@ export function BudgetFields({
   let fit: { tone: 'success' | 'info' | 'warning'; msg: string } | null = null;
   if (statedPct != null) {
     if (statedPct <= value.expectedPct) {
-      fit = { tone: 'success', msg: `✓ ≈ ${statedPct}% of income — fits within your ${value.expectedPct}% expenses budget.` };
+      fit = { tone: 'success', msg: `✓ ≈ ${statedPct}% of income - fits within your ${value.expectedPct}% expenses budget.` };
     } else if (statedPct <= totalExpensesPct) {
       fit = {
         tone: 'info',
-        msg: `≈ ${statedPct}% — above planned ${value.expectedPct}%, but within total expenses ${totalExpensesPct}% (dips into your unexpected buffer).`,
+        msg: `≈ ${statedPct}% - above planned ${value.expectedPct}%, but within total expenses ${totalExpensesPct}% (dips into your unexpected buffer).`,
       };
     } else {
       fit = {
         tone: 'warning',
-        msg: `△ ≈ ${statedPct}% — exceeds your ${totalExpensesPct}% total-expenses budget. Raise your expenses % or trim spending.`,
+        msg: `△ ≈ ${statedPct}% - exceeds your ${totalExpensesPct}% total-expenses budget. Raise your expenses % or trim spending.`,
       };
     }
   }
 
   return (
     <div className="space-y-3">
-      {/* ——— Percentage track (primary) ——— */}
+      {/* --- Percentage track (primary) --- */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <Field label="Budget model">
@@ -147,7 +147,7 @@ export function BudgetFields({
               <optgroup label="Savings ≥ 30%">
                 {selectable.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.name} — {m.savingsPct}% savings
+                    {m.name} - {m.savingsPct}% savings
                   </option>
                 ))}
               </optgroup>
@@ -155,7 +155,7 @@ export function BudgetFields({
               <optgroup label="Below 30% floor (not selectable)">
                 {reference.map((m) => (
                   <option key={m.id} value={m.id} disabled>
-                    {m.name} — {m.savingsPct}% savings
+                    {m.name} - {m.savingsPct}% savings
                   </option>
                 ))}
               </optgroup>
@@ -217,7 +217,7 @@ export function BudgetFields({
         <Row label="Auto savings goal / year" value={formatRwf(d.autoGoalTargetRwf)} />
       </div>
 
-      {/* ——— Daily spending budget ——— */}
+      {/* --- Daily spending budget --- */}
       <div className="rounded border border-hairline p-3">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
           Daily spending budget
@@ -269,7 +269,7 @@ export function BudgetFields({
         )}
       </div>
 
-      {/* ——— Expense fit check (secondary; doesn't change the budget) ——— */}
+      {/* --- Expense fit check (secondary; doesn't change the budget) --- */}
       <div className="rounded border border-dashed border-hairline p-3">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
           Check your real expenses

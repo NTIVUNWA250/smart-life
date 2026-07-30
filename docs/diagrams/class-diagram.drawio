@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="SMART LIFE — domain class diagram (Prisma data model)" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=15;" vertex="1" parent="1">
+        <mxCell id="title" value="SMART LIFE - domain class diagram (Prisma data model)" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=15;" vertex="1" parent="1">
           <mxGeometry x="40" y="20" width="600" height="30" as="geometry" />
         </mxCell>
         <mxCell id="User" value="User" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;collapsible=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1">
@@ -79,20 +79,20 @@
         <mxCell id="TimetableAllowedTarget_a" value="+ id: String&#10;+ entryId: String&#10;+ appOrSite: String&#10;+ kind: ScreenTargetKind&#10;+ label: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;overflow=hidden;rotatable=0;" vertex="1" parent="TimetableAllowedTarget">
           <mxGeometry y="26" width="220" height="88" as="geometry" />
         </mxCell>
-        <mxCell id="enums" value="Enums&#10;Role { student, approver, admin }&#10;TxnType { income, expense }&#10;GoalStatus { active, achieved, failed }&#10;Frequency { daily, monthly, yearly }&#10;ScreenTargetKind { app, url }&#10;ActivityCategory { study, work, meal, … }&#10;ApprovalKind { spending, screentime, goal_edit }&#10;PeerRelationship { peer, parent }&#10;LinkStatus { pending, accepted, rejected }" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;size=16;" vertex="1" parent="1">
+        <mxCell id="enums" value="Enums&#10;Role { student, approver, admin }&#10;TxnType { income, expense }&#10;GoalStatus { active, achieved, failed }&#10;Frequency { daily, monthly, yearly }&#10;ScreenTargetKind { app, url }&#10;ActivityCategory { study, work, meal, ... }&#10;ApprovalKind { spending, screentime, goal_edit }&#10;PeerRelationship { peer, parent }&#10;LinkStatus { pending, accepted, rejected }" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;size=16;" vertex="1" parent="1">
           <mxGeometry x="70" y="685" width="300" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="r1" value="1 — 0..1" style="endArrow=none;html=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="FinanceProfile"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r2" value="1 — 0..*" style="endArrow=none;html=1;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="Transaction"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r3" value="1 — 0..*" style="endArrow=none;html=1;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="Goal"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r4" value="1 — 0..*" style="endArrow=none;html=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="SpendingLimit"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r5" value="1 — 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.2;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="RefreshToken"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r6" value="1 — 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.4;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="PeerLink"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r7" value="1 — 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.6;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="Approval"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r8" value="1 — 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="AuditLog"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r9" value="1 — 0..*" style="endArrow=none;html=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="ScreenTimePolicy"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r10" value="1 — 0..*" style="endArrow=none;html=1;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="TimetableEntry"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r11" value="1 — 0..*" style="endArrow=none;startArrow=diamondThin;startFill=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="TimetableEntry" target="TimetableAllowedTarget"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r1" value="1 - 0..1" style="endArrow=none;html=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="FinanceProfile"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2" value="1 - 0..*" style="endArrow=none;html=1;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="Transaction"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3" value="1 - 0..*" style="endArrow=none;html=1;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="Goal"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4" value="1 - 0..*" style="endArrow=none;html=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="SpendingLimit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5" value="1 - 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.2;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="RefreshToken"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r6" value="1 - 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.4;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="PeerLink"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r7" value="1 - 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.6;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="Approval"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r8" value="1 - 0..*" style="endArrow=none;html=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="AuditLog"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r9" value="1 - 0..*" style="endArrow=none;html=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="ScreenTimePolicy"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r10" value="1 - 0..*" style="endArrow=none;html=1;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="User" target="TimetableEntry"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r11" value="1 - 0..*" style="endArrow=none;startArrow=diamondThin;startFill=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="TimetableEntry" target="TimetableAllowedTarget"><mxGeometry relative="1" as="geometry" /></mxCell>
         <mxCell id="lg_box" value="Legend / Notation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=8;spacingTop=6;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="70" y="915" width="1240" height="140" as="geometry" />
         </mxCell>
@@ -102,10 +102,10 @@
         <mxCell id="lg_cls_a" value="+ field: Type&#10;+ field: Type" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;rotatable=0;" vertex="1" parent="lg_cls">
           <mxGeometry y="22" width="150" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="lg_cls_t" value="Class / table — name compartment over its attributes (name : type)" style="text;html=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="lg_cls_t" value="Class / table - name compartment over its attributes (name : type)" style="text;html=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="260" y="962" width="300" height="48" as="geometry" />
         </mxCell>
-        <mxCell id="lg_assoc" value="1 — 0..*" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1">
+        <mxCell id="lg_assoc" value="1 - 0..*" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="600" y="966" as="sourcePoint" />
             <mxPoint x="690" y="966" as="targetPoint" />
@@ -114,13 +114,13 @@
         <mxCell id="lg_assoc_t" value="Association with multiplicities (1, 0..1, 0..*)" style="text;html=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="700" y="954" width="260" height="24" as="geometry" />
         </mxCell>
-        <mxCell id="lg_comp" value="1 — 0..*" style="endArrow=none;startArrow=diamondThin;startFill=1;html=1;fontSize=10;" edge="1" parent="1">
+        <mxCell id="lg_comp" value="1 - 0..*" style="endArrow=none;startArrow=diamondThin;startFill=1;html=1;fontSize=10;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="600" y="1006" as="sourcePoint" />
             <mxPoint x="690" y="1006" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="lg_comp_t" value="Composition — owner ◆ owns its parts (cascade delete)" style="text;html=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="lg_comp_t" value="Composition - owner  owns its parts (cascade delete)" style="text;html=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="700" y="994" width="300" height="24" as="geometry" />
         </mxCell>
         <mxCell id="lg_note" value="enum" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=10;align=center;" vertex="1" parent="1">
@@ -129,7 +129,7 @@
         <mxCell id="lg_note_t" value="Yellow note lists the enumerations used by the attributes." style="text;html=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="1066" y="952" width="230" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="lg_color_t" value="Colour groups: blue = core / money &amp; activity · green = collaboration (peers, approvals) · purple = security &amp; audit." style="text;html=1;align=left;verticalAlign=middle;fontStyle=2;" vertex="1" parent="1">
+        <mxCell id="lg_color_t" value="Colour groups: blue = core / money &amp; activity - green = collaboration (peers, approvals) - purple = security &amp; audit." style="text;html=1;align=left;verticalAlign=middle;fontStyle=2;" vertex="1" parent="1">
           <mxGeometry x="1010" y="1000" width="290" height="44" as="geometry" />
         </mxCell>
       </root>

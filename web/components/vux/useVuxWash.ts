@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * VUX — the wash.
+ * VUX - the wash.
  *
  * Floods a surface with a state colour for a beat, then drains back. Two scopes:
  *
@@ -27,7 +27,7 @@ const FILL: Record<VuxTone, string> = {
   neutral: 'var(--vux-neutral-fill)',
 };
 
-/** 18% is the house strength. 30% is the ceiling — past it, body text dims. */
+/** 18% is the house strength. 30% is the ceiling - past it, body text dims. */
 const DEFAULT_ALPHA = 18;
 
 function run(el: HTMLElement, tone: VuxTone, alpha: number) {
@@ -72,7 +72,7 @@ export function useVuxPageWash() {
  * Component-level wash. Put the ref on the element and give it `vux-wash-local`.
  *
  *   const { ref, wash } = useVuxLocalWash<HTMLDivElement>();
- *   <div ref={ref} className="vux-wash-local">…</div>
+ *   <div ref={ref} className="vux-wash-local">...</div>
  */
 export function useVuxLocalWash<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);

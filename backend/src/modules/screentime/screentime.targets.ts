@@ -37,7 +37,7 @@ export interface NormalizedTarget {
  * Validates and normalises a screen-time target.
  *  - `url`: normalised to a host (see [normalizeWebTarget]).
  *  - `app`: an opaque platform identifier (Android package name, or an iOS
- *    Screen-Time token) — kept as-is beyond trimming/length checks.
+ *    Screen-Time token) - kept as-is beyond trimming/length checks.
  */
 export function normalizeTarget(
   kind: ScreenTargetKind,

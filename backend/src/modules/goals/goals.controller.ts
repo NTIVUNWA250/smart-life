@@ -17,7 +17,7 @@ const createSchema = z.object({
 });
 
 // PATCH only records progress / status. Editing a goal's *definition*
-// (title/target/deadline) goes through POST /:id/edit-request → approval.
+// (title/target/deadline) goes through POST /:id/edit-request -> approval.
 const updateSchema = z.object({
   addSavedRwf: z.number().int().positive().optional(),
   status: z.enum(['active', 'achieved', 'failed']).optional(),
@@ -84,7 +84,7 @@ goalsRouter.patch(
 );
 
 // Request a definition edit (title/target/deadline). Allowed once a month and
-// must be approved — by a parent for minors, or a peer for adults.
+// must be approved - by a parent for minors, or a peer for adults.
 goalsRouter.post(
   '/:id/edit-request',
   asyncHandler(async (req, res) => {

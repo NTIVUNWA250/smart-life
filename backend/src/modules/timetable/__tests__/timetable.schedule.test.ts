@@ -13,7 +13,7 @@ function entry(p: Partial<ScheduleEntry> & Pick<ScheduleEntry, 'id' | 'daysOfWee
   return { isolation: false, reminderEnabled: true, reminderLeadMin: 5, ...p };
 }
 
-// Mon 08:00–10:00 study
+// Mon 08:00-10:00 study
 const study = entry({ id: 'study', daysOfWeek: [1], startMin: 480, endMin: 600, isolation: true });
 
 describe('isActiveAt', () => {
@@ -29,7 +29,7 @@ describe('isActiveAt', () => {
 
 describe('dueReminders', () => {
   it('fires within the lead window before the start', () => {
-    expect(dueReminders([study], { dow: 1, min: 476 }).map((r) => r.startsInMin)).toEqual([4]); // 07:56 → 4 min
+    expect(dueReminders([study], { dow: 1, min: 476 }).map((r) => r.startsInMin)).toEqual([4]); // 07:56 -> 4 min
     expect(dueReminders([study], { dow: 1, min: 475 })).toHaveLength(1); // exactly 5 min before
   });
   it('does not fire outside the window or once started', () => {

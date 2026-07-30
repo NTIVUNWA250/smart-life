@@ -2,7 +2,7 @@
  * Provisions an MTN MoMo **sandbox** API user + API key.
  *
  *   1. Sign up at https://momodeveloper.mtn.com and subscribe to the *Collections*
- *      product. Copy the "Primary Key" — that is your Ocp-Apim-Subscription-Key.
+ *      product. Copy the "Primary Key" - that is your Ocp-Apim-Subscription-Key.
  *   2. Put it in backend/.env as MOMO_SUBSCRIPTION_KEY.
  *   3. npm run momo:provision
  *   4. Paste the printed MOMO_API_USER / MOMO_API_KEY into .env, set
@@ -72,7 +72,7 @@ async function main(): Promise<void> {
   const token = (await tokenRes.json()) as { access_token: string; expires_in: number };
   console.log(`  ✓ Access token obtained (expires in ${token.expires_in}s)`);
 
-  // Balance is a diagnostic, not proof — the token above already establishes that
+  // Balance is a diagnostic, not proof - the token above already establishes that
   // the credentials work. MTN's sandbox returns 503 here intermittently, and
   // treating that as fatal would discard a working API key that is printed
   // nowhere else and cannot be read back. Warn and carry on.
@@ -90,7 +90,7 @@ async function main(): Promise<void> {
     console.log(`  ✓ Collections balance: ${balance.availableBalance} ${balance.currency}`);
   } catch (err) {
     console.log(`  ! Collections balance unavailable (${err instanceof Error ? err.message : String(err)})`);
-    console.log('    Sandbox flakiness, not a credential problem — the token above proves they work.');
+    console.log('    Sandbox flakiness, not a credential problem - the token above proves they work.');
   }
 
   console.log('\nAdd these to backend/.env:\n');

@@ -21,13 +21,13 @@ async function requiredGoalSavingsRwf(userId: string): Promise<number> {
  * Spending limit (FR3) for the current month. When the user has a budget profile
  * it is percentage-based and goal-aware:
  *
- *   limit = monthlyIncome − max(savingsBucket, requiredGoalSavings)
+ *   limit = monthlyIncome - max(savingsBucket, requiredGoalSavings)
  *
- * where savingsBucket = savings% × income. The limit therefore reserves at least
- * the savings allocation (≥30%), and tightens further if goals demand more — so
+ * where savingsBucket = savings% x income. The limit therefore reserves at least
+ * the savings allocation (>=30%), and tightens further if goals demand more - so
  * it depends on income, the budget percentages, and the goals.
  *
- * Without a profile it falls back to actual income(this month) − requiredSavings.
+ * Without a profile it falls back to actual income(this month) - requiredSavings.
  * When spend reaches the limit, all payment channels are blocked (FR4).
  */
 async function computeLimitRwf(
@@ -112,7 +112,7 @@ export async function recomputeCurrentLimit(userId: string, now = new Date()): P
   const overLimit = spentRwf >= limitRwf && limitRwf >= 0;
   const shouldBlock = overLimit;
 
-  // Record only the false→true / true→false transitions, not every recompute.
+  // Record only the false->true / true->false transitions, not every recompute.
   if ((existing?.isBlocked ?? false) !== shouldBlock) {
     await audit(
       shouldBlock ? 'limit.blocked' : 'limit.unblocked',
@@ -166,7 +166,7 @@ export async function checkPayment(
   amountRwf: number,
   now = new Date(),
   /** Spend a pending approval override if one is needed. Only the call that
-   *  actually records the expense should consume it — a read-only check must not. */
+   *  actually records the expense should consume it - a read-only check must not. */
   consumeOverride = false,
 ): Promise<{
   allowed: boolean;
@@ -216,7 +216,7 @@ export async function checkPayment(
 
 /**
  * Manually unblock (used after an approval is granted). Clearing `isBlocked` alone
- * would not survive the next recompute, which re-derives it from spend vs limit —
+ * would not survive the next recompute, which re-derives it from spend vs limit -
  * so this also arms a one-time override for the expense the approval was for.
  */
 export async function unblock(userId: string): Promise<SpendingLimit> {

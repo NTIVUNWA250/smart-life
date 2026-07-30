@@ -3,7 +3,7 @@
 import { useTheme, type Theme } from '@/lib/theme';
 
 /**
- * Glyphs, not emoji — emoji are drawn by the operating system, so ☀️ and 🌙 are
+ * Glyphs, not emoji - emoji are drawn by the operating system, so  and  are
  * a different picture on every platform and cannot take your colour.
  *
  * The three read as one idea: an empty disc is light, a filled disc is dark, and

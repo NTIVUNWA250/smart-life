@@ -35,7 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
-  # SMART LIFE dependencies (kept intentionally light — no heavy state frameworks).
+  # SMART LIFE dependencies (kept intentionally light - no heavy state frameworks).
   http: ^1.2.2                 # REST calls to the SMART LIFE backend
   shared_preferences: ^2.3.2   # persist the auth tokens + user on device
   intl: ^0.20.2                # RWF currency + date formatting

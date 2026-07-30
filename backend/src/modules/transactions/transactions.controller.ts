@@ -72,10 +72,10 @@ transactionsRouter.post(
 //
 // Recorded spending is what drives the limit, and passing the limit blocks
 // payments until a peer or parent approves (FR4/FR6). Deleting an expense
-// recomputes the limit downward, which silently lifts that block — no approval,
+// recomputes the limit downward, which silently lifts that block - no approval,
 // no audit trail. It made the approval system optional for anyone willing to
 // delete two rows, so the endpoint is gone rather than merely hidden: an
 // unaudited bypass that only the UI declines to call is still a bypass.
 //
-// Mis-entered amounts are a real problem and need a real answer — a reversal
-// entry or an audited, approval-gated correction — not silent erasure.
+// Mis-entered amounts are a real problem and need a real answer - a reversal
+// entry or an audited, approval-gated correction - not silent erasure.

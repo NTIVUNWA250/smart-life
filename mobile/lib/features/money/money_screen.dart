@@ -103,8 +103,8 @@ class _LimitHeader extends StatelessWidget {
       showSnack(
         context,
         result.allowed
-            ? 'Allowed — ${Format.rwf(amount)} is within your limit.'
-            : 'Blocked — ${result.reason ?? 'over your limit'}.',
+            ? 'Allowed - ${Format.rwf(amount)} is within your limit.'
+            : 'Blocked - ${result.reason ?? 'over your limit'}.',
       );
     } catch (e) {
       if (context.mounted) showSnack(context, e.toString());

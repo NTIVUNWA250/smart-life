@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { env } from './env.js';
 
-// AES-256-GCM field encryption for sensitive approval/peer data (SRS §2.4).
+// AES-256-GCM field encryption for sensitive approval/peer data (SRS section 2.4).
 const ALGO = 'aes-256-gcm';
 
 function key(): Buffer {

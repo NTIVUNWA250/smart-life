@@ -1,5 +1,5 @@
 /* VUX design system. Lives at ../../design-system so every product shares one
-   copy; Next reaches it via experimental.externalDir. Must come first —
+   copy; Next reaches it via experimental.externalDir. Must come first -
    @import has to precede every other rule in a CSS file. */
 @import '../../design-system/vux.css';
 

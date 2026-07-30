@@ -56,7 +56,7 @@ export async function reportUsage(
         : { usedMin: u.usedMin, isBlocked },
     });
     await providers.screentime.enforceBlock(userId, u.appOrSite, isBlocked);
-    // Audit only the false→true transition (a new block taking effect).
+    // Audit only the false->true transition (a new block taking effect).
     if (isBlocked && !policy.isBlocked) {
       await audit('screentime.blocked', userId, `app=${u.appOrSite} used=${u.usedMin} limit=${policy.dailyLimitMin}`);
     }

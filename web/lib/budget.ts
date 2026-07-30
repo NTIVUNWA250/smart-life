@@ -26,9 +26,9 @@ export const BUDGET_MODELS: BudgetModel[] = [
   { id: 'fire_50', name: 'FIRE half-saver', description: '40% expenses · 10% unexpected · 50% savings', expectedPct: 40, unexpectedPct: 10, savingsPct: 50, selectable: true },
   { id: 'lean_fire_60', name: 'Lean FIRE', description: '30% expenses · 10% unexpected · 60% savings', expectedPct: 30, unexpectedPct: 10, savingsPct: 60, selectable: true },
   { id: 'extreme_fire_70', name: 'Extreme FIRE', description: '20% expenses · 10% unexpected · 70% savings', expectedPct: 20, unexpectedPct: 10, savingsPct: 70, selectable: true },
-  { id: 'balanced_50_30_20', name: '50/30/20 rule', description: '50% needs · 30% wants · 20% savings — below the 30% floor', expectedPct: 70, unexpectedPct: 10, savingsPct: 20, selectable: false },
-  { id: 'rule_70_20_10', name: '70/20/10 rule', description: '70% expenses · 20% savings · 10% debt/giving — below the 30% floor', expectedPct: 70, unexpectedPct: 10, savingsPct: 20, selectable: false },
-  { id: 'pay_yourself_80_20', name: '80/20 — pay yourself first', description: '80% expenses · 20% savings — below the 30% floor', expectedPct: 70, unexpectedPct: 10, savingsPct: 20, selectable: false },
+  { id: 'balanced_50_30_20', name: '50/30/20 rule', description: '50% needs · 30% wants · 20% savings - below the 30% floor', expectedPct: 70, unexpectedPct: 10, savingsPct: 20, selectable: false },
+  { id: 'rule_70_20_10', name: '70/20/10 rule', description: '70% expenses · 20% savings · 10% debt/giving - below the 30% floor', expectedPct: 70, unexpectedPct: 10, savingsPct: 20, selectable: false },
+  { id: 'pay_yourself_80_20', name: '80/20 - pay yourself first', description: '80% expenses · 20% savings - below the 30% floor', expectedPct: 70, unexpectedPct: 10, savingsPct: 20, selectable: false },
 ];
 
 export function findModel(id: string): BudgetModel | undefined {
@@ -96,7 +96,7 @@ export function suggestBudgetClient(monthlyIncomeRwf: number, expectedPct: numbe
     monthlySavingsRwf: Math.round((income * savingsPct) / 100),
     monthsToReachGoals: 0,
     meetsGoalDeadlines: true,
-    rationale: `Saving ${savingsPct}% with a ${unexpectedPct}% unexpected buffer — savings rises as your income grows. Add goals to get a goal-based suggestion.`,
+    rationale: `Saving ${savingsPct}% with a ${unexpectedPct}% unexpected buffer - savings rises as your income grows. Add goals to get a goal-based suggestion.`,
   };
 }
 

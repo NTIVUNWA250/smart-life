@@ -165,7 +165,7 @@ export interface SignupInput {
   name: string;
   email: string;
   password: string;
-  // `admin` is intentionally excluded — internal/developer role only.
+  // `admin` is intentionally excluded - internal/developer role only.
   role?: Exclude<Role, 'admin'>;
   isMinor?: boolean;
   finance?: FinanceInput;
@@ -248,7 +248,7 @@ export const api = {
         method: 'PATCH',
         body: input,
       }),
-    // Request a title/target/deadline change — routed through an approver
+    // Request a title/target/deadline change - routed through an approver
     // (parent for minors, peer for adults) and allowed once a month.
     editRequest: (
       id: string,
@@ -282,7 +282,7 @@ export const api = {
   screentime: {
     policies: () => request<{ items: ScreenTimePolicy[] }>('/screentime/policies'),
     // `kind` is sent explicitly. The server defaults it to 'url', and a URL
-    // target can never accumulate usage — the phone measures per-app foreground
+    // target can never accumulate usage - the phone measures per-app foreground
     // time and cannot see browser URLs.
     upsertPolicy: (input: {
       appOrSite: string;

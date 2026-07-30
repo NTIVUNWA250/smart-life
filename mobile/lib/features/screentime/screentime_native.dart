@@ -71,7 +71,7 @@ class ScreenTimeNative {
   /// Whether the OS has granted the access needed to measure usage.
   ///
   /// On Android this is the PACKAGE_USAGE_STATS app-op, which the user must
-  /// toggle in Settings — see [openUsageAccessSettings]. Platforms with no native
+  /// toggle in Settings - see [openUsageAccessSettings]. Platforms with no native
   /// module report false.
   Future<bool> hasUsageAccess() async {
     try {
@@ -100,7 +100,7 @@ class ScreenTimeNative {
   /// Returns today's used minutes per app/site id, keyed by the same ids passed in.
   ///
   /// Throws [ScreenTimePermissionException] when the OS can measure usage but the
-  /// user has not granted access — that is a fixable state the UI should surface,
+  /// user has not granted access - that is a fixable state the UI should surface,
   /// not a reason to fall back to fake data.
   Future<Map<String, int>> usageFor(List<String> appsOrSites) async {
     if (appsOrSites.isEmpty) return const {};

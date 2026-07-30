@@ -63,7 +63,7 @@ export async function buildFeed(userId: string, clock?: Clock): Promise<Notifica
       id: `pending:${a.id}`,
       type: 'reminder',
       title: 'Approval needed',
-      body: `${a.requester.name} is requesting a ${label} — review it in Approvals.`,
+      body: `${a.requester.name} is requesting a ${label} - review it in Approvals.`,
       createdAt: a.createdAt.toISOString(),
     });
   }
@@ -100,7 +100,7 @@ export async function buildFeed(userId: string, clock?: Clock): Promise<Notifica
         type: 'reminder',
         title: `Starting in ${r.startsInMin} min: ${r.entry.title}`,
         body: r.entry.isolation
-          ? `${r.entry.title} is about to start — focus mode will keep only its allowed apps and sites enabled.`
+          ? `${r.entry.title} is about to start - focus mode will keep only its allowed apps and sites enabled.`
           : `${r.entry.title} is about to start.`,
         createdAt: new Date().toISOString(),
       });
