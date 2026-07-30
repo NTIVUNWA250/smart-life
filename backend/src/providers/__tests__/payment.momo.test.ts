@@ -46,7 +46,7 @@ function provider(opts: {
 
 describe('MomoPaymentProvider — block state', () => {
   it('refuses a blocked user without calling MTN at all', async () => {
-    const f = fakeFetch(() => jsonRes(true));
+    const f = fakeFetch(() => jsonRes({ result: true }));
     const p = provider({ fetch: f, msisdn: '250788123456' });
 
     await p.block('u1');
@@ -56,7 +56,7 @@ describe('MomoPaymentProvider — block state', () => {
   });
 
   it('unblock restores authorisation and is scoped to one user', async () => {
-    const f = fakeFetch(() => jsonRes(true));
+    const f = fakeFetch(() => jsonRes({ result: true }));
     const p = provider({ fetch: f, msisdn: '250788123456' });
 
     await p.block('u1');
@@ -71,7 +71,7 @@ describe('MomoPaymentProvider — account-holder check', () => {
     let seen: { url: string; headers: Record<string, string> } | null = null;
     const f = fakeFetch((url, init) => {
       seen = { url, headers: init.headers as Record<string, string> };
-      return jsonRes(true);
+      return jsonRes({ result: true });
     });
 
     expect(await provider({ fetch: f, msisdn: '250788123456' }).authorize('u1', 5_000)).toBe(true);
@@ -86,9 +86,29 @@ describe('MomoPaymentProvider — account-holder check', () => {
   });
 
   it('skips MTN entirely when the user has no linked wallet', async () => {
-    const f = fakeFetch(() => jsonRes(true));
+    const f = fakeFetch(() => jsonRes({ result: true }));
     expect(await provider({ fetch: f, msisdn: null }).authorize('u1', 5_000)).toBe(true);
     expect(f).not.toHaveBeenCalled();
+  });
+
+  // These three pin the response *shape*. The original fixture asserted a bare
+  // `true`, which is what MTN's documentation examples show — the live sandbox
+  // actually answers `{"result":true}`, so every active account was being read as
+  // inactive and every linked user's payment refused. The tests were green
+  // throughout, because the fake and the adapter shared one wrong assumption.
+  it('reads MTN\'s real {"result":true} envelope as active', async () => {
+    const f = fakeFetch(() => jsonRes({ result: true }));
+    expect(await provider({ fetch: f, msisdn: '250788123456' }).authorize('u1', 5_000)).toBe(true);
+  });
+
+  it('reads {"result":false} as inactive and refuses', async () => {
+    const f = fakeFetch(() => jsonRes({ result: false }));
+    expect(await provider({ fetch: f, msisdn: '250788123456' }).authorize('u1', 5_000)).toBe(false);
+  });
+
+  it('still accepts a bare `true`, the shape the docs advertise', async () => {
+    const f = fakeFetch(() => jsonRes(true));
+    expect(await provider({ fetch: f, msisdn: '250788123456' }).authorize('u1', 5_000)).toBe(true);
   });
 
   it('refuses when MTN does not know the account holder (404)', async () => {
@@ -117,7 +137,7 @@ describe('MomoPaymentProvider — access token', () => {
         tokenCalls += 1;
         return jsonRes(TOKEN_BODY);
       }
-      return jsonRes(true);
+      return jsonRes({ result: true });
     }) as unknown as typeof globalThis.fetch;
 
     const p = provider({ fetch: f, msisdn: '250788123456' });
@@ -135,7 +155,7 @@ describe('MomoPaymentProvider — access token', () => {
         tokenCalls += 1;
         return jsonRes(TOKEN_BODY);
       }
-      return jsonRes(true);
+      return jsonRes({ result: true });
     }) as unknown as typeof globalThis.fetch;
 
     const p = provider({ fetch: f, msisdn: '250788123456', now: () => clock });
@@ -159,7 +179,7 @@ describe('MomoPaymentProvider — access token', () => {
         unauthorized = false;
         return jsonRes({ message: 'expired' }, 401);
       }
-      return jsonRes(true);
+      return jsonRes({ result: true });
     }) as unknown as typeof globalThis.fetch;
 
     const p = provider({ fetch: f, msisdn: '250788123456' });

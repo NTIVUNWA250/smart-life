@@ -58,9 +58,28 @@ AES-GCM encrypted in `User.momoMsisdnEnc` (NFR7) and audited as `auth.momo.linke
 `auth.momo.unlinked` — without recording the number itself. A user with no linked
 wallet is never sent to MTN at all.
 
-**Sandbox caveats.** MTN's sandbox reports the Collections balance in **EUR**, not
-RWF, and its test account holders are not real subscribers — so the sandbox proves the
-integration works, not that any particular Rwandan number behaves this way.
+**The response shape, verified against the live host.** `/active` answers **200 with
+`{"result":true}`** — *not* the bare `true` MTN's documentation examples show. The
+adapter parses the envelope, the bare boolean and an empty body, because a 200 it
+cannot parse is a worse reason to refuse a payment than trusting the status code.
+This was found only by pointing a real key at the sandbox: the unit tests and the
+adapter had agreed on the documented shape, so every active account read as inactive
+and every linked user's payment would have been refused, with 12 green tests.
+
+**Sandbox caveats.** Confirmed by running against it, rather than assumed:
+
+- The Collections balance is reported in **EUR**, not RWF, and can be negative.
+- `/active` returns `true` for **any** well-formed Rwandan MSISDN — the sandbox has
+  no notion of an unknown subscriber, so the "unrecognised number is refused" path
+  cannot be demonstrated there. It is reachable only via a 404 from the real host.
+- A non-Rwandan MSISDN returns **500 `NOT_ALLOWED_TARGET_ENVIRONMENT`**, not a 404,
+  and so takes the fail-open path rather than being refused.
+- `GET /collection/v1_0/account/balance` returns 503 intermittently. `momo:provision`
+  treats it as a warning, never fatal — it is a diagnostic, and the access token
+  already proves the credentials work.
+
+So the sandbox proves the integration works; it does not prove any particular Rwandan
+number behaves this way.
 
 ## Screen-time provider
 

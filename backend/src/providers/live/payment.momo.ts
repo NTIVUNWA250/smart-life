@@ -127,9 +127,14 @@ export class MomoPaymentProvider implements PaymentProvider {
   /**
    * GET /collection/v1_0/accountholder/msisdn/{msisdn}/active.
    *
-   * 200 (body `true`) means active; 404 means MTN has no such account holder, which
-   * is a definite "no" rather than a failure — it must not be swallowed by
-   * `authorize`'s fail-open path, so it is translated here instead of throwing.
+   * 404 means MTN has no such account holder, which is a definite "no" rather than
+   * a failure — it must not be swallowed by `authorize`'s fail-open path, so it is
+   * translated here instead of throwing.
+   *
+   * On 200 the sandbox answers `{"result":true}`, verified against the live host —
+   * *not* the bare `true` the docs' examples suggest. Both are accepted, and an
+   * empty body is treated as success, because a 200 that we cannot parse is a
+   * worse reason to refuse someone's payment than trusting the status code.
    */
   async isAccountActive(msisdn: string): Promise<boolean> {
     let res: Response;
@@ -143,7 +148,18 @@ export class MomoPaymentProvider implements PaymentProvider {
       throw err;
     }
     const body = (await res.text()).trim();
-    return body === '' || body.toLowerCase() === 'true';
+    if (body === '') return true;
+
+    try {
+      const parsed = JSON.parse(body) as unknown;
+      if (typeof parsed === 'boolean') return parsed;
+      if (parsed && typeof parsed === 'object' && 'result' in parsed) {
+        return Boolean((parsed as { result: unknown }).result);
+      }
+    } catch {
+      // Not JSON — fall through to the text comparison below.
+    }
+    return body.toLowerCase() === 'true';
   }
 
   /** GET /collection/v1_0/account/balance — diagnostics; verifies credentials work. */

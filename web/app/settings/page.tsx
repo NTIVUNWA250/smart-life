@@ -35,6 +35,7 @@ export default function SettingsPage() {
           <ProfileSection />
           <PasswordSection />
         </div>
+        <PaymentSection />
         <BudgetSection />
         <GoalsSection />
         <AppearanceSection />
@@ -66,7 +67,6 @@ function ProfileSection() {
   const { user, setUser } = useAuth();
   const [name, setName] = useState(user?.name ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
-  const [momo, setMomo] = useState(user?.momoMsisdn ?? '');
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -77,15 +77,7 @@ function ProfileSection() {
     setErr(null);
     setBusy(true);
     try {
-      // Only send momoMsisdn when it actually changed — every send is audited as a
-      // link/unlink, and an untouched blank field must not log an unlink each save.
-      const trimmed = momo.trim();
-      const changed = trimmed !== (user?.momoMsisdn ?? '');
-      const { user: updated } = await api.auth.updateProfile({
-        name,
-        email,
-        ...(changed && { momoMsisdn: trimmed === '' ? null : trimmed }),
-      });
+      const { user: updated } = await api.auth.updateProfile({ name, email });
       setUser(updated);
       setMsg('Profile updated.');
     } catch (e2) {
@@ -106,7 +98,70 @@ function ProfileSection() {
         <Field label="Email">
           <Input type="email" value={email} required onChange={(e) => setEmail(e.target.value)} />
         </Field>
-        <Field label="MTN MoMo number (optional)">
+        <Button type="submit" disabled={busy}>
+          {busy ? 'Saving…' : 'Save profile'}
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
+/**
+ * The MoMo number used to sit among the profile fields, labelled "optional" —
+ * which said nothing about what it does. It is the link between this account and
+ * the wallet SMART LIFE checks before a payment, so it gets its own section that
+ * says so, and shows whether a wallet is currently linked.
+ */
+function PaymentSection() {
+  const { user, setUser } = useAuth();
+  const [momo, setMomo] = useState(user?.momoMsisdn ?? '');
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const linked = Boolean(user?.momoMsisdn);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    setErr(null);
+    setBusy(true);
+    try {
+      // Only send when it actually changed — every send is audited as a
+      // link/unlink, and an untouched blank field must not log an unlink each save.
+      const trimmed = momo.trim();
+      if (trimmed === (user?.momoMsisdn ?? '')) {
+        setMsg('No change.');
+        return;
+      }
+      const { user: updated } = await api.auth.updateProfile({
+        momoMsisdn: trimmed === '' ? null : trimmed,
+      });
+      setUser(updated);
+      setMsg(trimmed === '' ? 'Wallet unlinked.' : 'Wallet linked.');
+    } catch (e2) {
+      setErr(errorMessage(e2));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Payment blocking (MTN MoMo)">
+      <form onSubmit={submit} className="space-y-3">
+        {err && <Alert tone="error">{err}</Alert>}
+        {msg && <Alert tone="success">{msg}</Alert>}
+
+        <div className="flex items-center gap-2">
+          <Badge tone={linked ? 'green' : 'slate'}>{linked ? 'linked' : 'not linked'}</Badge>
+          <span className="text-xs text-muted">
+            {linked
+              ? 'Payments on this wallet are checked with MTN before they go through.'
+              : 'No wallet linked — spending limits still apply, but MTN is never consulted.'}
+          </span>
+        </div>
+
+        <Field label="MTN MoMo number">
           <Input
             value={momo}
             inputMode="numeric"
@@ -115,12 +170,12 @@ function ProfileSection() {
             onChange={(e) => setMomo(e.target.value)}
           />
           <p className="mt-1 text-xs text-muted">
-            International format, digits only. Linking lets SMART LIFE check your wallet
-            with MTN before a payment. Leave blank to unlink.
+            International format, digits only — e.g. 250788123456. Leave blank to unlink.
+            The number is stored encrypted and never shown to your approvers.
           </p>
         </Field>
         <Button type="submit" disabled={busy}>
-          {busy ? 'Saving…' : 'Save profile'}
+          {busy ? 'Saving…' : linked ? 'Update wallet' : 'Link wallet'}
         </Button>
       </form>
     </Card>
