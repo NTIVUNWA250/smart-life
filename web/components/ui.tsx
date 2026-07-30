@@ -23,13 +23,17 @@ export function Card({
   title,
   children,
   className = '',
+  id,
 }: {
   title?: string;
   children: ReactNode;
   className?: string;
+  /** Anchor target, so another page can deep-link straight to this card. */
+  id?: string;
 }) {
   return (
     <section
+      id={id}
       className={`rounded border border-hairline bg-surface p-5 ${className}`}
     >
       {title && <h2 className="vux-label mb-4">{title}</h2>}

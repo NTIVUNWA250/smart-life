@@ -43,6 +43,12 @@ export interface SpendingLimit {
   spentRwf: number;
   unexpectedIncomeRwf: number;
   isBlocked: boolean;
+  /**
+   * An approver has granted one over-limit expense (FR6). Unlike `isBlocked` this
+   * survives recomputation and is consumed by the next expense that would
+   * otherwise be refused.
+   */
+  overridePending: boolean;
 }
 
 export interface BudgetSuggestion {

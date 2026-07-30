@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { AppShell } from '@/components/AppShell';
 import {
   Alert,
@@ -23,6 +24,7 @@ import type {
   DailyStatus,
   Goal,
   ScreenTimePolicy,
+  SpendingLimit,
   Transaction,
   TransactionType,
 } from '@/lib/types';
@@ -41,6 +43,7 @@ function Dashboard() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [policies, setPolicies] = useState<ScreenTimePolicy[]>([]);
   const [daily, setDaily] = useState<DailyStatus | null>(null);
+  const [limit, setLimit] = useState<SpendingLimit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +62,7 @@ function Dashboard() {
       setGoals(g.items);
       setPolicies(p.items);
       setDaily(lim.daily);
+      setLimit(lim.limit);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -75,7 +79,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {daily && <DailyBudgetCard daily={daily} />}
+      {daily && <DailyBudgetCard daily={daily} limit={limit} />}
       {summary && <SummaryCards summary={summary} />}
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -93,7 +97,26 @@ function Dashboard() {
   );
 }
 
-function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
+/**
+ * A refusal is only useful if it says what to do next. Every place the server
+ * turns spending down now points at the one screen that can lift it — previously
+ * the message stopped at "blocked" and you had to already know the flow existed.
+ */
+function RequestOverrideLink() {
+  return (
+    <Link href="/approvals#ask-for-more-room" className="font-medium underline">
+      ask a peer or parent for an override
+    </Link>
+  );
+}
+
+function DailyBudgetCard({
+  daily,
+  limit,
+}: {
+  daily: DailyStatus;
+  limit: SpendingLimit | null;
+}) {
   const { budget, allowanceRwf, spentTodayRwf, remainingRwf } = daily;
   const usedPct = allowanceRwf > 0 ? (spentTodayRwf / allowanceRwf) * 100 : 0;
   // At exactly the allowance every further expense is already refused, so this
@@ -121,6 +144,7 @@ function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
           {isHeavyDay && budget.heavyExpenseRwf > 0 && (
             <Badge tone="amber">+{formatRwf(budget.heavyExpenseRwf)} rent day</Badge>
           )}
+          {limit?.overridePending && <Badge tone="green">override ready</Badge>}
         </div>
       </div>
 
@@ -131,11 +155,20 @@ function DailyBudgetCard({ daily }: { daily: DailyStatus }) {
         {formatRwf(spentTodayRwf)} spent today
       </div>
 
-      {over && (
+      {limit?.overridePending && (
+        <div className="mt-3">
+          <Alert tone="success">
+            An approver has granted one over-limit expense. It is used up by your next
+            expense that would otherwise be refused.
+          </Alert>
+        </div>
+      )}
+
+      {over && !limit?.overridePending && (
         <div className="mt-3">
           <Alert tone="warning">
-            You are over today&apos;s budget. Further spending is blocked until tomorrow —
-            request a peer approval if you need an override.
+            You are over today&apos;s budget. Further spending is blocked until tomorrow —{' '}
+            <RequestOverrideLink />.
           </Alert>
         </div>
       )}
@@ -271,7 +304,7 @@ function AddTransaction({ onDone }: { onDone: () => Promise<void> }) {
         {error && <Alert tone="error">{error}</Alert>}
         {blocked && (
           <Alert tone="warning">
-            {blocked} Ask a peer or parent to approve an override if you need this expense.
+            {blocked} If you need this expense, <RequestOverrideLink />.
           </Alert>
         )}
         <div className="grid grid-cols-2 gap-3">
