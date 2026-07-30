@@ -5,9 +5,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Two URLs, because managed Postgres (Neon) puts PgBouncer in front of it.
+//   url       - the pooled host. Used by the running server: a free instance
+//               opens a new connection on every cold start, so pooling helps.
+//   directUrl - the unpooled host. Used by Prisma Migrate only. Migrations take
+//               an advisory lock and run DDL in one session, which transaction
+//               pooling breaks, so they have to bypass PgBouncer.
+// Locally both point at the same database, since there is no pooler in front.
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 enum Role {

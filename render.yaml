@@ -23,7 +23,13 @@ services:
       - key: PROVIDER_MODE
         value: sandbox
       # sync: false = set by hand in the Render dashboard, never in this file.
+      # DATABASE_URL is Neon's pooled host (the one carrying "-pooler"), used by
+      # the running server. DIRECT_DATABASE_URL is the unpooled host, used only
+      # by prisma migrate deploy on boot: migrations take an advisory lock and
+      # run DDL in one session, which PgBouncer transaction pooling breaks.
       - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_DATABASE_URL
         sync: false
       - key: JWT_ACCESS_SECRET
         generateValue: true
