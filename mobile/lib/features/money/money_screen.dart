@@ -194,10 +194,6 @@ class _TransactionsTab extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  onLongPress: () async {
-                    await api.deleteTransaction(t.id);
-                    onChanged();
-                  },
                 );
               },
             ),

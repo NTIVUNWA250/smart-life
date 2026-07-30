@@ -229,8 +229,8 @@ export const api = {
         method: 'POST',
         body: input,
       }),
-    remove: (id: string) =>
-      request<void>(`/transactions/${id}`, { method: 'DELETE' }),
+    // No remove(): the API has no delete endpoint. Deleting an expense would
+    // recompute the limit downward and lift an active block without approval.
   },
 
   // ---- Goals -------------------------------------------------------------

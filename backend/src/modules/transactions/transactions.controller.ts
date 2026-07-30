@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../../middleware/async-handler.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { prisma } from '../../lib/prisma.js';
-import { conflict, notFound } from '../../lib/http-error.js';
+import { conflict } from '../../lib/http-error.js';
 import { checkPayment, recomputeCurrentLimit } from '../limits/limits.service.js';
 
 export const transactionsRouter = Router();
@@ -68,15 +68,14 @@ transactionsRouter.post(
   }),
 );
 
-transactionsRouter.delete(
-  '/:id',
-  asyncHandler(async (req, res) => {
-    const existing = await prisma.transaction.findFirst({
-      where: { id: req.params.id, userId: req.user!.id },
-    });
-    if (!existing) throw notFound('Transaction not found');
-    await prisma.transaction.delete({ where: { id: existing.id } });
-    await recomputeCurrentLimit(req.user!.id);
-    res.status(204).end();
-  }),
-);
+// There is deliberately no DELETE /transactions/:id.
+//
+// Recorded spending is what drives the limit, and passing the limit blocks
+// payments until a peer or parent approves (FR4/FR6). Deleting an expense
+// recomputes the limit downward, which silently lifts that block — no approval,
+// no audit trail. It made the approval system optional for anyone willing to
+// delete two rows, so the endpoint is gone rather than merely hidden: an
+// unaudited bypass that only the UI declines to call is still a bypass.
+//
+// Mis-entered amounts are a real problem and need a real answer — a reversal
+// entry or an audited, approval-gated correction — not silent erasure.

@@ -188,8 +188,9 @@ class ApiClient {
     });
   }
 
-  Future<void> deleteTransaction(String id) =>
-      _send('DELETE', '/transactions/$id');
+  // No deleteTransaction: the API has no delete endpoint. Removing an expense
+  // would recompute the spending limit downward and lift an active block
+  // without any approval.
 
   // ---- Goals ---------------------------------------------------------------
 

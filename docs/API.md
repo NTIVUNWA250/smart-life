@@ -19,7 +19,12 @@ All money values are integer **RWF**.
 | ------ | --------------------- | ------------------------------ |
 | GET    | `/transactions`       | List (filter by type/date)     |
 | POST   | `/transactions`       | Add income/expense             |
-| DELETE | `/transactions/:id`   | Remove                         |
+
+> There is no delete endpoint, by design. Recorded spending drives the limit, and
+> passing the limit blocks payments until a peer or parent approves (FR4/FR6).
+> Deleting an expense would recompute the limit downward and lift that block with
+> no approval and no audit trail, making the approval system optional for anyone
+> willing to remove a row.
 
 ## Goals
 | Method | Path           | Description                        |

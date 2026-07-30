@@ -84,7 +84,7 @@ function Dashboard() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <GoalsList goals={goals} onDone={load} />
-        <RecentTransactions transactions={transactions} onDone={load} />
+        <RecentTransactions transactions={transactions} />
       </div>
 
       <ScreenTime policies={policies} onDone={load} />
@@ -433,25 +433,7 @@ function GoalsList({ goals, onDone }: { goals: Goal[]; onDone: () => Promise<voi
   );
 }
 
-function RecentTransactions({
-  transactions,
-  onDone,
-}: {
-  transactions: Transaction[];
-  onDone: () => Promise<void>;
-}) {
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  async function remove(id: string) {
-    setBusyId(id);
-    try {
-      await api.transactions.remove(id);
-      await onDone();
-    } finally {
-      setBusyId(null);
-    }
-  }
-
+function RecentTransactions({ transactions }: { transactions: Transaction[] }) {
   return (
     <Card title="Recent transactions">
       {transactions.length === 0 ? (
@@ -467,25 +449,16 @@ function RecentTransactions({
                 </div>
                 <div className="text-xs text-muted">{formatDate(t.occurredAt)}</div>
               </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={
-                    t.type === 'income'
-                      ? 'text-sm font-semibold text-state-success'
-                      : 'text-sm font-semibold text-state-danger'
-                  }
-                >
-                  {t.type === 'income' ? '+' : '−'}
-                  {formatRwf(t.amountRwf)}
-                </span>
-                <Button
-                  variant="secondary"
-                  disabled={busyId === t.id}
-                  onClick={() => void remove(t.id)}
-                >
-                  ✕
-                </Button>
-              </div>
+              <span
+                className={
+                  t.type === 'income'
+                    ? 'text-sm font-semibold text-state-success'
+                    : 'text-sm font-semibold text-state-danger'
+                }
+              >
+                {t.type === 'income' ? '+' : '−'}
+                {formatRwf(t.amountRwf)}
+              </span>
             </li>
           ))}
         </ul>
