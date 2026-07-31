@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- The app talks to the API over HTTPS, so it needs this. Flutter injects
+         INTERNET into the debug and profile manifests only, which is why a debug
+         build on the emulator worked while the release APK failed every request
+         with "Failed host lookup". Release merges only this manifest, so it has
+         to be declared here. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Screen-time (FR5): blocking/usage enforcement permissions.
          PACKAGE_USAGE_STATS is a special-access permission the user grants in
          Settings; it backs per-app usage reporting once the native service is added. -->
